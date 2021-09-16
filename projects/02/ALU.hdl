@@ -43,14 +43,14 @@ CHIP ALU {
 
     PARTS:
     // x track
-    Mux16(a=x, b=zero, sel=zx, out=rmuxx);
+    Mux16(a=x, b=false, sel=zx, out=rmuxx);
     Not16(in=rmuxx, out=rnotx);
     Mux16(a=rmuxx, b=rnotx, sel=nx, out=rx);
 
     // y track
-    Mux16(a=y, b=zero, sel=ny, out=rmuxy);
+    Mux16(a=y, b=false, sel=zy, out=rmuxy);
     Not16(in=rmuxy, out=rnoty);
-    Mux16(a=rmuxy, b=rnoty, sel=zy, out=ry);
+    Mux16(a=rmuxy, b=rnoty, sel=ny, out=ry);
 
     // function
     Add16(a=rx, b=ry, out=addxy);
