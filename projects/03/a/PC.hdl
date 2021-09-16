@@ -16,5 +16,15 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // counter
+    Inc16(in=outinc, out=rinc);
+
+    // input selection
+    Mux16(a=outinc, b=rinc, sel=inc, out=in1);
+    Mux16(a=in1, b=in, sel=load, out=in2);
+    Mux16(a=in2, b=false, sel=reset, out=in3);
+
+
+    // mem
+    Register(in=in3, load=true, out=out, out=outinc);
 }
