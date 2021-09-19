@@ -10,3 +10,45 @@
 // R0 >= 0, R1 >= 0, and R0*R1 < 32768.
 
 // Put your code here.
+
+// a = R0
+@R0
+D=M
+@a
+M=D
+// n = R1
+@R1
+D=M
+@n
+M=D
+// sum = 0
+@sum
+M=0
+// while n > 0 do
+(LOOP)
+  @n
+  D=M
+  @OUTPUT
+  D;JEQ
+  // decrease n
+  @n
+  M=D-1
+  // sum = sum + a
+  @a
+  D=M
+  @sum
+  M=D+M
+
+  @LOOP
+  0;JMP
+
+(OUTPUT)
+//output result
+@sum
+D=M
+@R2
+M=D
+//END
+(END)
+  @END
+  0;JMP
