@@ -46,7 +46,7 @@ CHIP CPU {
     And(a=instruction[15], b=instruction[4], out=setRegD);
 
     // registers
-    Register(in=toAReg, load=setRegA, out=regA, out[0..14]=addressM);
+    ARegister(in=toAReg, load=setRegA, out=regA, out[0..14]=addressM);
     DRegister(in=toDReg, load=setRegD, out=regD);
 
     // selectors
