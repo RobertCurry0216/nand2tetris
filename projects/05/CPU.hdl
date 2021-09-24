@@ -39,5 +39,59 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    Not(in=instruction[15], out=notI);
+
+    // register setters
+    Or(a=notI, b=instruction[5], out=setRegA);
+    And(a=instruction[15], b=instruction[4], out=setRegD);
+
+    // registers
+    Register(in=toAReg, load=setRegA, out=regA, out[0..14]=addressM);
+    DRegister(in=toDReg, load=setRegD, out=regD);
+
+    // selectors
+    Mux16(a=instruction, b=aluResult, sel=instruction[15], out=toAReg);
+    Mux16(a=regA, b=inM, sel=instruction[12], out=AorM);
+
+    // alu
+    ALU(x=regD,
+        y=AorM,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outM,
+        out=toDReg,
+        out=aluResult,
+        zr=zero,
+        ng=neg
+        );
+
+    // program counter
+    PC(in=regA, load=setPC, inc=inc, reset=reset, out[0..14]=pc);
+
+    // pc setter
+    // greater than
+    Or(a=zero, b=neg, out=NorZ);
+    Not(in=NorZ, out=NnorZ);
+    And(a=instruction[0], b=NnorZ, out=gt);
+
+    // equal
+    And(a=instruction[1], b=zero, out=eq);
+
+    // less than
+    And(a=instruction[2], b=neg, out=lt);
+
+    Or(a=gt, b=eq, out=or1);
+    Or(a=or1, b=lt, out=or2);
+    Or(a=or1, b=or2, out=jump);
+    And(a=jump, b=instruction[15], out=setPC);
+
+    // inc
+    Not(in=setPC, out=inc);
+
+    // writeM
+    And(a=instruction[3], b=instruction[15], out=writeM);
 }
