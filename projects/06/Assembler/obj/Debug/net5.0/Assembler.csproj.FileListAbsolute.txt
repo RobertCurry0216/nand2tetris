@@ -1,0 +1,16 @@
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.exe
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.deps.json
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.runtimeconfig.json
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.runtimeconfig.dev.json
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.dll
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\ref\Assembler.dll
+C:\Users\rober\nand2tetris\projects\06\Assembler\bin\Debug\net5.0\Assembler.pdb
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.csprojAssemblyReference.cache
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.AssemblyInfoInputs.cache
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.AssemblyInfo.cs
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.csproj.CoreCompileInputs.cache
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.dll
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\ref\Assembler.dll
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.pdb
+C:\Users\rober\nand2tetris\projects\06\Assembler\obj\Debug\net5.0\Assembler.genruntimeconfig.cache
