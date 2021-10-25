@@ -10,13 +10,13 @@ A=A-1
 D=M-D
 
 // in not greater
-@is-eq
-D;JEQ
+@is-lt
+D;JLT
 @end
 D=0;JMP
 
 // is greater
-(is-eq)
+(is-lt)
 D=-1
 
 (end)

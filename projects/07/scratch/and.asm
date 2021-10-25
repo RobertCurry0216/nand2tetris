@@ -1,4 +1,4 @@
-// add
+// and
 
 // load top of stack into D
 @SP
@@ -8,5 +8,5 @@ D=M
 // dec sp
 A=A-1
 
-// add top of stack and D
-M=D+M
+// and top of stack and D
+M=D&M
