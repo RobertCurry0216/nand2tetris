@@ -6,14 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"vm-translater/codewriter"
-	"vm-translater/parser"
 )
 
 func main(){
 	fmt.Println("hello world")
-	parser.Parse()
-	codewriter.Write()
 
 	filePath := "./test.txt"
 

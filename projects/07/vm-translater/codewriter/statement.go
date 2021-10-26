@@ -19,10 +19,10 @@ type PushConstStatement struct {
 	Argument int
 }
 
-func (p *PushConstStatement) ToAsm() []string	{
+func (s *PushConstStatement) ToAsm() []string	{
 	return []string{
-		fmt.Sprintf("// push constant %d", p.Argument),
-		fmt.Sprintf("@%d", p.Argument),
+		fmt.Sprintf("// push constant %d", s.Argument),
+		fmt.Sprintf("@%d", s.Argument),
 		"D=A",
 		"@SP",
 		"A=M",
@@ -37,12 +37,12 @@ type PushLocationStatement struct {
 	Argument int
 }
 
-func (p *PushLocationStatement) ToAsm() []string {
+func (s *PushLocationStatement) ToAsm() []string {
 	return []string{
-		fmt.Sprintf("// push %v %v", p.Location, p.Argument),
-		fmt.Sprintf("@%v", p.Location),
+		fmt.Sprintf("// push %v %v", s.Location, s.Argument),
+		fmt.Sprintf("@%v", s.Location),
 		"D=M",
-		fmt.Sprintf("@%d", p.Argument),
+		fmt.Sprintf("@%d", s.Argument),
 		"A=D+A",
 		"D=M",
 		"@SP",
@@ -59,12 +59,12 @@ type PopStatement struct {
 	Argument int
 }
 
-func (p *PopStatement) ToAsm() []string {
+func (s *PopStatement) ToAsm() []string {
 	return []string{
-		fmt.Sprintf("// pop %v %v", p.Location, p.Argument),
-		fmt.Sprintf("@%v", p.Location),
+		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
+		fmt.Sprintf("@%v", s.Location),
 		"D=M",
-		fmt.Sprintf("@%d", p.Argument),
+		fmt.Sprintf("@%d", s.Argument),
 		"D=D+A",
 		"@R15",
 		"M=D",
