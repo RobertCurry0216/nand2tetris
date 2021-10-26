@@ -6,17 +6,58 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"vm-translater/codewriter"
+	"vm-translater/parser"
 )
 
 func main(){
-	fmt.Println("hello world")
 
-	filePath := "./test.txt"
+	// check args
+	if len(os.Args) != 2 {
+		fmt.Println("Error: No file name provided")
+		fmt.Println("useage: vm-translater <filepath>")
+		return
+	}
 
+	filePath := os.Args[1]
+
+	if !fileExists(filePath){
+		fmt.Printf("Error: could not find file: %v\n", filePath)
+		return
+	}
+
+	if !checkExt(filePath) {
+		fmt.Printf("Invalid file type, expected: '.vm', got: '%v'\n", filepath.Ext(filePath))
+		return
+	}
+
+	fileOutPath := replaceExt(filePath, ".asm")
+
+	if fileExists(fileOutPath){
+		fmt.Printf("Error: output file already exists: %v\n", fileOutPath)
+		return
+	}
+
+
+	// translate code
 	data := readFile(filePath)
-	writeFile("./out.txt", data)
 
-	fmt.Println(data)
+	statements := parser.Parse(data)
+	code := codewriter.Write(statements)
+
+	writeFile(fileOutPath, code)
+	fmt.Println("Success!!")
+	fmt.Printf("output file: %v\n", fileOutPath)
+}
+
+func replaceExt(file, newExt string) string {
+	ext := filepath.Ext(file)
+	return file[0:len(file) - len(ext)] + newExt
+}
+
+func checkExt(file string) bool {
+	return filepath.Ext(file) == ".vm"
 }
 
 

@@ -19,6 +19,10 @@ type PushConstStatement struct {
 	Argument int
 }
 
+func (s *PushConstStatement) String() string {
+	return fmt.Sprintf("< push constant %d >", s.Argument)
+}
+
 func (s *PushConstStatement) ToAsm() []string	{
 	return []string{
 		fmt.Sprintf("// push constant %d", s.Argument),
@@ -35,6 +39,10 @@ func (s *PushConstStatement) ToAsm() []string	{
 type PushLocationStatement struct {
 	Location Location
 	Argument int
+}
+
+func (s *PushLocationStatement) String() string {
+	return fmt.Sprintf("< push %v %d >", s.Location, s.Argument)
 }
 
 func (s *PushLocationStatement) ToAsm() []string {
@@ -59,6 +67,10 @@ type PopStatement struct {
 	Argument int
 }
 
+func (s *PopStatement) String() string {
+	return fmt.Sprintf("< pop %v %d >", s.Location, s.Argument)
+}
+
 func (s *PopStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
@@ -78,6 +90,7 @@ func (s *PopStatement) ToAsm() []string {
 }
 
 type AddStatement struct {}
+func (s *AddStatement) String() string { return "< add >"}
 func (s *AddStatement) ToAsm() []string {
 	return []string{
 		"// add",
@@ -90,6 +103,7 @@ func (s *AddStatement) ToAsm() []string {
 }
 
 type SubStatement struct {}
+func (s *SubStatement) String() string { return "< sub >"}
 func (s *SubStatement) ToAsm() []string {
 	return []string{
 		"// sub",
@@ -102,6 +116,7 @@ func (s *SubStatement) ToAsm() []string {
 }
 
 type NegStatement struct {}
+func (s *NegStatement) String() string { return "< neg >"}
 func (s *NegStatement) ToAsm() []string {
 	return []string{
 		"// neg",
@@ -114,6 +129,7 @@ func (s *NegStatement) ToAsm() []string {
 type EqStatement struct {
 	Id int
 }
+func (s *EqStatement) String() string { return fmt.Sprintf("< Eq %d >", s.Id) }
 func (s *EqStatement) ToAsm() []string {
 	return []string{
 		"// eq",
@@ -147,6 +163,7 @@ func (s *EqStatement) ToAsm() []string {
 type GtStatement struct {
 	Id int
 }
+func (s *GtStatement) String() string { return fmt.Sprintf("< gt %d >", s.Id)}
 func (s *GtStatement) ToAsm() []string {
 	return []string{
 		"// gt",
@@ -180,6 +197,7 @@ func (s *GtStatement) ToAsm() []string {
 type LtStatement struct {
 	Id int
 }
+func (s *LtStatement) String() string { return fmt.Sprintf("< lt %d >", s.Id)}
 func (s *LtStatement) ToAsm() []string {
 	return []string{
 		"// lt",
@@ -211,6 +229,7 @@ func (s *LtStatement) ToAsm() []string {
 }
 
 type AndStatement struct { }
+func (s *AndStatement) String() string { return "< and >"}
 func (s *AndStatement) ToAsm() []string {
 	return []string{
 		"// and",
@@ -223,6 +242,7 @@ func (s *AndStatement) ToAsm() []string {
 }
 
 type OrStatement struct { }
+func (s *OrStatement) String() string { return "< or >"}
 func (s *OrStatement) ToAsm() []string {
 	return []string{
 		"// or",
@@ -235,6 +255,7 @@ func (s *OrStatement) ToAsm() []string {
 }
 
 type NotStatement struct { }
+func (s *NotStatement) String() string { return "< not >"}
 func (s *NotStatement) ToAsm() []string {
 	return []string{
 		"// not",
