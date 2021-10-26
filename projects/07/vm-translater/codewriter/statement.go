@@ -4,12 +4,22 @@ import (
 	"fmt"
 )
 
-type Location string
+type Location string	
 
-const (
-	CONSTANT = Location("constant")
-	LOCAL = Location("local")
-)
+func (l *Location) Address() string {
+	switch string(*l) {
+	case "local":
+		return "LCL"
+	case "argument":
+		return "ARG"
+	case "this":
+		return "THIS"
+	case "that":
+		return "THAT"
+	default:
+		panic("invalid location")
+	}
+}
 
 type Statement interface {
 	ToAsm() []string
@@ -48,7 +58,7 @@ func (s *PushLocationStatement) String() string {
 func (s *PushLocationStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// push %v %v", s.Location, s.Argument),
-		fmt.Sprintf("@%v", s.Location),
+		fmt.Sprintf("@%v", s.Location.Address()),
 		"D=M",
 		fmt.Sprintf("@%d", s.Argument),
 		"A=D+A",
@@ -74,7 +84,7 @@ func (s *PopStatement) String() string {
 func (s *PopStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
-		fmt.Sprintf("@%v", s.Location),
+		fmt.Sprintf("@%v", s.Location.Address()),
 		"D=M",
 		fmt.Sprintf("@%d", s.Argument),
 		"D=D+A",
