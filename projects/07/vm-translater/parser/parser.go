@@ -28,65 +28,70 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 
 	words := strings.Split(code, " ")
 
-	var statement cw.Statement
-	match := true
-
 	switch words[0] {
 		case "push":
 			arg, err := strconv.Atoi(words[2])
 			if err != nil { panic(err) }
 			switch words[1] {
 			case "constant":
-				statement = &cw.PushConstStatement{
+				statement := &cw.PushConstStatement{
 					Argument: arg,
 				}
+				return statement, true
 			default:
-				statement = &cw.PushLocationStatement{
-					Location: cw.Location(words[1]),
-					Argument: arg,
-				}
+				statement := &cw.PushLocationStatement{}
+				statement.Location = cw.Location(words[1])
+				statement.Argument = arg
+				return statement, true
 			}
 
 		case "pop":
 			arg, err := strconv.Atoi(words[2])
 			if err != nil { panic(err) }
 
-			statement = &cw.PopStatement{
-				Location: cw.Location(words[1]),
-				Argument: arg,
-			}
+			statement := &cw.PopStatement{}
+			statement.Location = cw.Location(words[1])
+			statement.Argument = arg
+			return statement, true
 
 		case "add":
-			statement = &cw.AddStatement{}
+			statement := &cw.AddStatement{}
+			return statement, true
 
 		case "sub":
-			statement = &cw.SubStatement{}
+			statement := &cw.SubStatement{}
+			return statement, true
 
 		case "neg":
-			statement = &cw.NegStatement{}
-
+			statement := &cw.NegStatement{}
+			return statement, true
+			
 		case "eq":
-			statement = &cw.EqStatement{ Id: n }
-
+			statement := &cw.EqStatement{ Id: n }
+			return statement, true
+			
 		case "gt":
-			statement = &cw.GtStatement{ Id: n }
+			statement := &cw.GtStatement{ Id: n }
+			return statement, true
 
 		case "lt":
-			statement = &cw.LtStatement{ Id: n }
+			statement := &cw.LtStatement{ Id: n }
+			return statement, true
 
 		case "and":
-			statement = &cw.AndStatement{}
+			statement := &cw.AndStatement{}
+			return statement, true
 
 		case "or":
-			statement = &cw.OrStatement{}
+			statement := &cw.OrStatement{}
+			return statement, true
 
 		case "not":
-			statement = &cw.NotStatement{}
+			statement := &cw.NotStatement{}
+			return statement, true
 		
 		default: 
-			match = false
+			return nil, false
+
 	}
-
-
-	return statement, match
 }

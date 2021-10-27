@@ -23,7 +23,7 @@ M=D
 @SP
 M=M+1
 // pop static 8
-@static
+@24
 D=M
 @8
 D=D+A
@@ -36,7 +36,7 @@ D=M
 A=M
 M=D
 // pop static 3
-@static
+@19
 D=M
 @3
 D=D+A
@@ -49,7 +49,7 @@ D=M
 A=M
 M=D
 // pop static 1
-@static
+@17
 D=M
 @1
 D=D+A
@@ -62,7 +62,7 @@ D=M
 A=M
 M=D
 // push static 3
-@static
+@19
 D=M
 @3
 A=D+A
@@ -73,7 +73,7 @@ M=D
 @SP
 M=M+1
 // push static 1
-@static
+@17
 D=M
 @1
 A=D+A
@@ -90,7 +90,7 @@ D=M
 A=A-1
 M=D-M
 // push static 8
-@static
+@24
 D=M
 @8
 A=D+A

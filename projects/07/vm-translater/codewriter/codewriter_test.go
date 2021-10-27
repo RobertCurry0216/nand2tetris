@@ -6,11 +6,19 @@ import (
 )
 
 func TestCodewriter(t *testing.T) {
+	pushLoc := PushLocationStatement{ }
+	pushLoc.Location = "local"
+	pushLoc.Argument = 2
+
+	pop := PopStatement{ }
+	pop.Location = "this"
+	pop.Argument = 4
+
 	input := []Statement{
 		&PushConstStatement{ 8 },
-		&PushLocationStatement{ "LCL", 2 },
+		&pushLoc,
 		&AddStatement{},
-		&PopStatement{ "THIS", 4 },
+		&pop,
 	}
 
 	expected := []string{
@@ -22,7 +30,7 @@ func TestCodewriter(t *testing.T) {
 		"M=D",
 		"@SP",
 		"M=M+1",
-		"// push LCL 2",
+		"// push local 2",
 		"@LCL",
 		"D=M",
 		"@2",
@@ -39,7 +47,7 @@ func TestCodewriter(t *testing.T) {
 		"D=M",
 		"A=A-1",
 		"M=D+M",
-		"// pop THIS 4",
+		"// pop this 4",
 		"@THIS",
 		"D=M",
 		"@4",

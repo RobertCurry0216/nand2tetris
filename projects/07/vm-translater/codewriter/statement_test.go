@@ -30,10 +30,12 @@ func TestPushConstStatement(t *testing.T) {
 }
 
 func TestPushLocationStatement(t *testing.T) {
-	s := PushLocationStatement{ "LCL",  4 }
+	s := PushLocationStatement{}
+	s.Location = "local"
+	s.Argument = 4
 	actual := s.ToAsm()
 	expected := []string{
-		"// push LCL 4",
+		"// push local 4",
 		"@LCL",
 		"D=M",
 		"@4",
@@ -58,10 +60,12 @@ func TestPushLocationStatement(t *testing.T) {
 }
 
 func TestPopStatement(t *testing.T) {
-	s := PopStatement{ "LCL",  4 }
+	s := PopStatement{ }
+	s.Location = "local"
+	s.Argument = 4
 	actual := s.ToAsm()
 	expected := []string{
-		"// pop LCL 4",
+		"// pop local 4",
 		"@LCL",
 		"D=M",
 		"@4",

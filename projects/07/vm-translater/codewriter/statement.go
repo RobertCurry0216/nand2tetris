@@ -6,24 +6,51 @@ import (
 
 type Location string	
 
-func (l *Location) Address() string {
+func (l *Location) Address(arg int) string {
 	switch string(*l) {
 	case "local":
-		return "LCL"
+		return "@LCL"
 	case "argument":
-		return "ARG"
+		return "@ARG"
 	case "this":
-		return "THIS"
+		return "@THIS"
 	case "that":
-		return "THAT"
+		return "@THAT"
+	case "static":
+		if arg >= 250 {
+			panic(fmt.Sprintf("invalid arg: static %d", arg))
+		}
+		return fmt.Sprintf("@%v", arg + 16)
+	case "pointer":
+		if arg == 0 {
+			return "@THIS"
+		} else if arg == 1 {
+			return "@THAT"
+		}
+		panic(fmt.Sprintf("invalid arg: static %d", arg))
+	case "temp":
+		if arg >= 8 {
+			panic(fmt.Sprintf("invalid arg: temp %d", arg))
+		}
+		return fmt.Sprintf("@%v", arg + 5)
 	default:
-		panic("invalid location")
-	}
+		panic(fmt.Sprintf("invalid location: %s", *l))
+	}	
 }
 
 type Statement interface {
 	ToAsm() []string
 }
+
+type LocationStatement struct {
+	Location Location
+	Argument int
+}
+
+func (l *LocationStatement) Address() string {
+	return l.Location.Address(l.Argument)
+}
+
 
 type PushConstStatement struct {
 	Argument int
@@ -47,8 +74,7 @@ func (s *PushConstStatement) ToAsm() []string	{
 }
 
 type PushLocationStatement struct {
-	Location Location
-	Argument int
+	LocationStatement
 }
 
 func (s *PushLocationStatement) String() string {
@@ -58,7 +84,7 @@ func (s *PushLocationStatement) String() string {
 func (s *PushLocationStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// push %v %v", s.Location, s.Argument),
-		fmt.Sprintf("@%v", s.Location.Address()),
+		s.Address(),
 		"D=M",
 		fmt.Sprintf("@%d", s.Argument),
 		"A=D+A",
@@ -73,8 +99,7 @@ func (s *PushLocationStatement) ToAsm() []string {
 
 
 type PopStatement struct {
-	Location Location
-	Argument int
+	LocationStatement
 }
 
 func (s *PopStatement) String() string {
@@ -84,7 +109,7 @@ func (s *PopStatement) String() string {
 func (s *PopStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
-		fmt.Sprintf("@%v", s.Location.Address()),
+		s.Address(),
 		"D=M",
 		fmt.Sprintf("@%d", s.Argument),
 		"D=D+A",
