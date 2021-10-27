@@ -110,7 +110,7 @@ func (s *PopStatement) ToAsm() []string {
 	return []string{
 		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
 		s.Address(),
-		"D=M",
+		"D=A",
 		fmt.Sprintf("@%d", s.Argument),
 		"D=D+A",
 		"@R15",

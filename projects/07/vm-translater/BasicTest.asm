@@ -22,7 +22,7 @@ A=A-1
 M=D+M
 // pop static 0
 @16
-D=M
+D=A
 @0
 D=D+A
 @R15
