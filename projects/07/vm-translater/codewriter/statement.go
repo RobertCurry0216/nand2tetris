@@ -6,7 +6,7 @@ import (
 
 type Location string	
 
-func (l *Location) Address(arg int) string {
+func (l *Location) Address() string {
 	switch string(*l) {
 	case "local":
 		return "@LCL"
@@ -17,22 +17,11 @@ func (l *Location) Address(arg int) string {
 	case "that":
 		return "@THAT"
 	case "static":
-		if arg >= 250 {
-			panic(fmt.Sprintf("invalid arg: static %d", arg))
-		}
-		return fmt.Sprintf("@%v", arg + 16)
+		return "@16"
 	case "pointer":
-		if arg == 0 {
-			return "@THIS"
-		} else if arg == 1 {
-			return "@THAT"
-		}
-		panic(fmt.Sprintf("invalid arg: static %d", arg))
+		return "@THIS"
 	case "temp":
-		if arg >= 8 {
-			panic(fmt.Sprintf("invalid arg: temp %d", arg))
-		}
-		return fmt.Sprintf("@%v", arg + 5)
+		return "@5"
 	default:
 		panic(fmt.Sprintf("invalid location: %s", *l))
 	}	
@@ -45,10 +34,6 @@ type Statement interface {
 type LocationStatement struct {
 	Location Location
 	Argument int
-}
-
-func (l *LocationStatement) Address() string {
-	return l.Location.Address(l.Argument)
 }
 
 
@@ -73,6 +58,26 @@ func (s *PushConstStatement) ToAsm() []string	{
 	}
 }
 
+func getBaseLocation(location Location) string {
+	// use base location A if using a virtual memory segment
+	// otherwise use M
+	baseLocation := "M"
+	virtual := []string{
+		"static",
+		"pointer",
+		"temp",
+	}
+
+	for _, l := range virtual {
+		if l == string(location) {
+			baseLocation = "A"
+			break
+		}
+	}
+
+	return baseLocation
+}
+
 type PushLocationStatement struct {
 	LocationStatement
 }
@@ -82,10 +87,11 @@ func (s *PushLocationStatement) String() string {
 }
 
 func (s *PushLocationStatement) ToAsm() []string {
+	base := getBaseLocation(s.Location)
 	return []string{
 		fmt.Sprintf("// push %v %v", s.Location, s.Argument),
-		s.Address(),
-		"D=M",
+		s.Location.Address(),
+		fmt.Sprintf("D=%s", base),
 		fmt.Sprintf("@%d", s.Argument),
 		"A=D+A",
 		"D=M",
@@ -107,16 +113,26 @@ func (s *PopStatement) String() string {
 }
 
 func (s *PopStatement) ToAsm() []string {
+	base := getBaseLocation(s.Location)
+
 	return []string{
 		fmt.Sprintf("// pop %v %v", s.Location, s.Argument),
-		s.Address(),
-		"D=A",
+
+		// set A to location + arg
+		s.Location.Address(),
+		fmt.Sprintf("D=%s", base),
 		fmt.Sprintf("@%d", s.Argument),
 		"D=D+A",
+
+		// store addr in R15
 		"@R15",
 		"M=D",
+
+		// dec stack pointer
 		"@SP",
 		"AM=M-1",
+
+		// load value
 		"D=M",
 		"@R15",
 		"A=M",
@@ -146,7 +162,7 @@ func (s *SubStatement) ToAsm() []string {
 		"AM=M-1",
 		"D=M",
 		"A=A-1",
-		"M=D-M",
+		"M=M-D",
 	}
 }
 

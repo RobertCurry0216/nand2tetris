@@ -8,7 +8,7 @@ M=D
 M=M+1
 // pop local 0
 @LCL
-D=A
+D=M
 @0
 D=D+A
 @R15
@@ -37,7 +37,7 @@ M=D
 M=M+1
 // pop argument 2
 @ARG
-D=A
+D=M
 @2
 D=D+A
 @R15
@@ -50,7 +50,7 @@ A=M
 M=D
 // pop argument 1
 @ARG
-D=A
+D=M
 @1
 D=D+A
 @R15
@@ -71,7 +71,7 @@ M=D
 M=M+1
 // pop this 6
 @THIS
-D=A
+D=M
 @6
 D=D+A
 @R15
@@ -100,7 +100,7 @@ M=D
 M=M+1
 // pop that 5
 @THAT
-D=A
+D=M
 @5
 D=D+A
 @R15
@@ -113,7 +113,7 @@ A=M
 M=D
 // pop that 2
 @THAT
-D=A
+D=M
 @2
 D=D+A
 @R15
@@ -133,7 +133,7 @@ M=D
 @SP
 M=M+1
 // pop temp 6
-@11
+@5
 D=A
 @6
 D=D+A
@@ -189,7 +189,7 @@ M=M+1
 AM=M-1
 D=M
 A=A-1
-M=D-M
+M=M-D
 // push this 6
 @THIS
 D=M
@@ -223,10 +223,10 @@ M=D+M
 AM=M-1
 D=M
 A=A-1
-M=D-M
+M=M-D
 // push temp 6
-@11
-D=M
+@5
+D=A
 @6
 A=D+A
 D=M

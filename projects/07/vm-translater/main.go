@@ -34,10 +34,10 @@ func main(){
 
 	fileOutPath := replaceExt(filePath, ".asm")
 
-	if fileExists(fileOutPath){
-		fmt.Printf("Error: output file already exists: %v\n", fileOutPath)
-		return
-	}
+	// if fileExists(fileOutPath){
+	// 	fmt.Printf("Error: output file already exists: %v\n", fileOutPath)
+	// 	return
+	// }
 
 
 	// translate code
