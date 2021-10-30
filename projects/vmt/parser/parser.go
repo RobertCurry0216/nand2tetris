@@ -13,7 +13,7 @@ func Parse(bytecode string) []cw.Statement {
 	for i, line := range strings.Split(bytecode, "\n") {
 		stmt, ok := parseLine(line, i)
 
-		if ok {
+		if !ok {
 			panic(fmt.Sprintf("error parsing line: %s", line))
 		}
 
@@ -29,7 +29,7 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 	code := strings.Split(bytecode, "//")[0]
 	code = strings.TrimSpace(code)
 	if len(code) == 0 {
-		return nil, false
+		return nil, true
 	}
 
 	words := strings.Fields(code)
