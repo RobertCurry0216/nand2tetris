@@ -292,18 +292,35 @@ func (s *NotStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("M=!M")
 }
 
-type LabelStatement struct { name string }
-func (s *LabelStatement) String() string { return fmt.Sprintf("< label %s >", s.name)}
+type LabelStatement struct { Name string }
+func (s *LabelStatement) String() string { return fmt.Sprintf("< label %s >", s.Name)}
 func (s *LabelStatement) Compile(cw *CodeWriter) {
-	cw.Writeln("//label %s", s.name)
-	cw.Writeln("(%s)", s.name)
+	cw.Writeln("// label %s", s.Name)
+	cw.Writeln("(%s)", s.Name)
 }
 
-type GotoStatement struct { name string }
-func (s *GotoStatement) String() string { return fmt.Sprintf("< goto %s >", s.name)}
+type GotoStatement struct { Name string }
+func (s *GotoStatement) String() string { return fmt.Sprintf("< goto %s >", s.Name)}
 func (s *GotoStatement) Compile(cw *CodeWriter) {
-	cw.Writeln("// goto %s", s.name)
-	cw.Writeln("@%s", s.name)
+	cw.Writeln("// goto %s", s.Name)
+	cw.Writeln("@%s", s.Name)
 	cw.Writeln("0;JMP")
 } 
 
+type IfGotoStatement struct { Name string; Id int }
+func (s *IfGotoStatement) String() string { return fmt.Sprintf("< if-goto %s>", s.Name)}
+func (s *IfGotoStatement) Compile(cw *CodeWriter) {
+	cw.Writeln("// if-goto %s", s.Name)
+
+	// pop top of stack
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+
+	// check eq 0
+	cw.Writeln("@%s-FALSE-%d", s.Name, s.Id)
+	cw.Writeln("D;JEQ")
+	cw.Writeln("@%s", s.Name)
+	cw.Writeln("0;JMP")
+	cw.Writeln("(%s-FALSE-%d)", s.Name, s.Id)
+}

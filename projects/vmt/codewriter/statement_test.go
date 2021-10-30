@@ -360,3 +360,77 @@ func TestNotStatement(t *testing.T) {
 		}
 	}
 }
+
+func TestLabelStatement(t *testing.T) {
+	s := LabelStatement{ Name: "test" }
+	var cw CodeWriter
+	s.Compile(&cw)
+	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
+	expected := []string{
+		"// label test",
+		"(test)",
+	}
+
+	if len(actual) != len(expected){
+		t.Errorf("line count mismatch, expected: %v, got: %v", len(expected), len(actual))
+		t.FailNow()
+	}
+
+	for i := range actual {
+		if actual[i] != expected[i] {
+			t.Errorf("expected: %v, got: %v", expected[i], actual[i])
+		}
+	}
+}
+
+func TestGotoStatement(t *testing.T) {
+	s := GotoStatement{ Name: "test" }
+	var cw CodeWriter
+	s.Compile(&cw)
+	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
+	expected := []string{
+		"// goto test",
+		"@test",
+		"0;JMP",
+	}
+
+	if len(actual) != len(expected){
+		t.Errorf("line count mismatch, expected: %v, got: %v", len(expected), len(actual))
+		t.FailNow()
+	}
+
+	for i := range actual {
+		if actual[i] != expected[i] {
+			t.Errorf("expected: %v, got: %v", expected[i], actual[i])
+		}
+	}
+}
+
+func TestIfGotoStatement(t *testing.T) {
+	s := IfGotoStatement{ Name: "test", Id: 2 }
+	var cw CodeWriter
+	s.Compile(&cw)
+	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
+	expected := []string{
+		"// if-goto test",
+		"@SP",
+		"AM=M-1",
+		"D=M",
+		"@test-FALSE-2",
+		"D;JEQ",
+		"@test",
+		"0;JMP",
+		"(test-FALSE-2)",
+	}
+
+	if len(actual) != len(expected){
+		t.Errorf("line count mismatch, expected: %v, got: %v", len(expected), len(actual))
+		t.FailNow()
+	}
+
+	for i := range actual {
+		if actual[i] != expected[i] {
+			t.Errorf("expected: %v, got: %v", expected[i], actual[i])
+		}
+	}
+}

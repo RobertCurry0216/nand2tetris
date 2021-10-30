@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	cw "vmt/codewriter"
@@ -10,8 +11,13 @@ func Parse(bytecode string) []cw.Statement {
 	statements := make([]cw.Statement, 0, 1000)
 	
 	for i, line := range strings.Split(bytecode, "\n") {
-		stmt, match := parseLine(line, i)
-		if match {
+		stmt, ok := parseLine(line, i)
+
+		if ok {
+			panic(fmt.Sprintf("error parsing line: %s", line))
+		}
+
+		if stmt != nil {
 			statements = append(statements, stmt)		
 		}
 	}
@@ -26,7 +32,7 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 		return nil, false
 	}
 
-	words := strings.Split(code, " ")
+	words := strings.Fields(code)
 
 	switch words[0] {
 		case "push":
@@ -88,6 +94,18 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 
 		case "not":
 			statement := &cw.NotStatement{}
+			return statement, true
+
+		case "label":
+			statement := &cw.LabelStatement{ Name: words[1] }
+			return statement, true
+
+		case "goto":
+			statement := &cw.GotoStatement{ Name: words[1] }
+			return statement, true
+
+		case "if-goto":
+			statement := &cw.IfGotoStatement{ Name: words[1], Id: n}
 			return statement, true
 		
 		default: 
