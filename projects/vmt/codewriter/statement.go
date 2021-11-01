@@ -85,12 +85,18 @@ func (s *PushLocationStatement) String() string {
 }
 
 func (s *PushLocationStatement) Compile(cw *CodeWriter) {
-	base := getBaseLocation(s.Location)
 	cw.Writeln("// push %v %v", s.Location, s.Argument)
 	cw.Writeln(s.Location.Address())
-	cw.Writeln("D=%s", base)
-	cw.Writeln("@%d", s.Argument)
-	cw.Writeln("A=D+A")
+
+	if s.Argument > 0 {
+		base := getBaseLocation(s.Location)
+		cw.Writeln("D=%s", base)
+		cw.Writeln("@%d", s.Argument)
+		cw.Writeln("A=D+A")
+	} else {
+		cw.Writeln("A=M")
+	}
+
 	cw.Writeln("D=M")
 	cw.Writeln("@SP")
 	cw.Writeln("A=M")
@@ -323,4 +329,185 @@ func (s *IfGotoStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("@%s", s.Name)
 	cw.Writeln("0;JMP")
 	cw.Writeln("(%s-FALSE-%d)", s.Name, s.Id)
+}
+
+type FunctionStatement struct { Name string; Nvars int }
+func (s *FunctionStatement) String() string { return fmt.Sprintf("< function %s %d >", s.Name, s.Nvars)}
+func (s *FunctionStatement) Compile(cw *CodeWriter) {
+	cw.Writeln("// function %s %d", s.Name, s.Nvars)
+	cw.Writeln("(%s)", s.Name)
+
+	// set local
+	cw.Writeln("@SP")
+	cw.Writeln("D=M")
+	cw.Writeln("@LCL")
+	cw.Writeln("AM=D")
+
+	// init nvars
+	for i := 0; i < s.Nvars; i++ {
+		cw.Writeln("M=0")
+		cw.Writeln("A=A+1")
+	}
+
+	// set SP
+	cw.Writeln("D=A")
+	cw.Writeln("@SP")
+	cw.Writeln("M=D")
+}
+
+type CallStatement struct {
+	Name string
+	Nargs int
+	Id int
+}
+func (s *CallStatement) String() string { return fmt.Sprintf("< call %s %d >", s.Name, s.Nargs) }
+func (s *CallStatement) Compile(cw *CodeWriter) {
+	returnId := fmt.Sprintf("return.%s.%d", s.Name, s.Id)
+	nargs := s.Nargs
+
+	cw.Writeln("// call %s %d", s.Name, s.Nargs)
+
+	// if narg == 0, push 0 onto the stack
+	// and set narg to 1
+	if nargs < 1 {
+		cw.Writeln("@0")
+		cw.Writeln("D=A")
+		cw.Writeln("@SP")
+		cw.Writeln("A=M")
+		cw.Writeln("M=D")
+		cw.Writeln("@SP")
+		cw.Writeln("M=M+1")
+		nargs = 1
+	}
+
+	// save return addr
+	cw.Writeln("@%s", returnId)
+	cw.Writeln("D=A")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+
+	// save local
+	cw.Writeln("@LCL")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+
+	// save arg
+	cw.Writeln("@ARG")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+
+	// save this
+	cw.Writeln("@THIS")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+
+	// save that
+	cw.Writeln("@THAT")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+
+	// set arg
+	cw.Writeln("@%d", nargs + 5)
+	cw.Writeln("D=A")
+	cw.Writeln("@SP")
+	cw.Writeln("D=M-D")
+	cw.Writeln("@ARG")
+	cw.Writeln("M=D")
+
+	// jump to function
+	cw.Writeln("@%s", s.Name)
+	cw.Writeln("0;JMP")
+
+
+	// return addr
+	cw.Writeln("(%s)", returnId)
+}
+
+
+type ReturnStatement struct { }
+func (s *ReturnStatement) String() string { return "< return >" }
+func (s *ReturnStatement) Compile(cw *CodeWriter) {
+	cw.Writeln("// return")
+
+	// set arg[0] to return val
+	cw.Writeln("@SP")
+	cw.Writeln("A=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@ARG")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+
+	// set SP back to LCL[0]
+	cw.Writeln("@LCL")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("M=D")
+
+	// save arg[1] addr so it can be set back to SP
+	cw.Writeln("@ARG")
+	cw.Writeln("D=M+1")
+	cw.Writeln("@R14")
+	cw.Writeln("M=D")
+
+	// reset that
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@THAT")
+	cw.Writeln("M=D")
+
+	// reset this
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@THIS")
+	cw.Writeln("M=D")
+
+	// reset arg
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@ARG")
+	cw.Writeln("M=D")
+
+	// reset lcl
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@LCL")
+	cw.Writeln("M=D")
+
+	// reset addr and restore SP
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+	cw.Writeln("D=M")
+	cw.Writeln("@R15")
+	cw.Writeln("M=D")
+
+	cw.Writeln("@R14")
+	cw.Writeln("D=M")
+	cw.Writeln("@SP")
+	cw.Writeln("M=D")
+
+	cw.Writeln("@R15")
+	cw.Writeln("A=M;JMP")
 }

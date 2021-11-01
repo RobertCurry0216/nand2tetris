@@ -1,0 +1,17 @@
+function Sys.init 0
+push constant 4
+call Main.test 1
+label WHILE
+goto WHILE              // loops infinitely
+
+function Main.test 2
+push constant 2
+pop local 0
+push constant 3
+pop local 1
+push argument 0
+push local 0
+push local 1
+add
+add
+return

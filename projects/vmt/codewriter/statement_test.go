@@ -434,3 +434,36 @@ func TestIfGotoStatement(t *testing.T) {
 		}
 	}
 }
+
+func TestFunctionStatement(t *testing.T) {
+	s := FunctionStatement{ Name: "f.test", Nvars: 2 }
+	var cw CodeWriter
+	s.Compile(&cw)
+	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
+	expected := []string{
+		"// function f.test 2",
+		"(f.test)",
+		"@SP",
+		"D=A",
+		"@LCL",
+		"AM=D",
+		"M=0",
+		"A=A+1",
+		"M=0",
+		"A=A+1",
+		"D=A",
+		"@SP",
+		"M=D",
+	}
+
+	if len(actual) != len(expected){
+		t.Errorf("line count mismatch, expected: %v, got: %v", len(expected), len(actual))
+		t.FailNow()
+	}
+
+	for i := range actual {
+		if actual[i] != expected[i] {
+			t.Errorf("expected: %v, got: %v", expected[i], actual[i])
+		}
+	}
+}

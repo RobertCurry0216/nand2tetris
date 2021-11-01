@@ -107,6 +107,22 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 		case "if-goto":
 			statement := &cw.IfGotoStatement{ Name: words[1], Id: n}
 			return statement, true
+
+		case "function":
+			arg, err := strconv.Atoi(words[2])
+			if err != nil { panic(err) }
+			statement := &cw.FunctionStatement{ Name: words[1], Nvars: arg }
+			return statement, true
+
+		case "call":
+			arg, err := strconv.Atoi(words[2])
+			if err != nil { panic(err) }
+			statement := &cw.CallStatement{ Name: words[1], Nargs: arg, Id: n }
+			return statement, true
+
+		case "return":
+			statement := &cw.ReturnStatement{}
+			return statement, true
 		
 		default: 
 			return nil, false
