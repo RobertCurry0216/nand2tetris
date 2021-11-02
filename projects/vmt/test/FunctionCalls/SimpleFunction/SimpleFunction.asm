@@ -1,5 +1,5 @@
-// function .SimpleFunction.test 2
-(.SimpleFunction.test)
+// function SimpleFunction.test 2
+(SimpleFunction.test)
 @SP
 D=M
 @LCL
@@ -13,9 +13,7 @@ D=A
 M=D
 // push local 0
 @LCL
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -45,9 +43,7 @@ A=M-1
 M=!M
 // push argument 0
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M

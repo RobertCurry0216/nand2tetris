@@ -22,6 +22,24 @@ func (cw *CodeWriter) Writeln(s string, args ...interface{}){
 func Write(statements []Statement) string {
 	var cw CodeWriter
 
+	// bootstrap code
+	cw.Writeln("// bootstrap")
+	cw.Writeln("@261")
+	cw.Writeln("D=A")
+	cw.Writeln("@SP")
+	cw.Writeln("M=D")
+	// call Sys.init
+	cw.Writeln("@LCL")
+	cw.Writeln("M=0")
+	cw.Writeln("@ARG")
+	cw.Writeln("M=0")
+	cw.Writeln("@THIS")
+	cw.Writeln("M=0")
+	cw.Writeln("@THAT")
+	cw.Writeln("M=0")
+	cw.Writeln("@Sys.init")
+	cw.Writeln("0;JMP")
+
 	for _, statement := range statements {
 		statement.Compile(&cw)
 	}

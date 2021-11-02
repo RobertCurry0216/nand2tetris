@@ -6,7 +6,7 @@ import (
 )
 
 func TestPushConstStatement(t *testing.T) {
-	s := PushConstStatement{ 4 }
+	s := PushConstStatement{ Argument: 4 }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
@@ -178,7 +178,7 @@ func TestNegStatement(t *testing.T) {
 }
 
 func TestEqStatement(t *testing.T) {
-	s := EqStatement{ 1234 }
+	s := EqStatement{ Id: 1234 }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
@@ -214,7 +214,7 @@ func TestEqStatement(t *testing.T) {
 }
 
 func TestGtStatement(t *testing.T) {
-	s := GtStatement{ 1234 }
+	s := GtStatement{ Id: 1234 }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
@@ -250,7 +250,7 @@ func TestGtStatement(t *testing.T) {
 }
 
 func TestLtStatement(t *testing.T) {
-	s := LtStatement{ 1234 }
+	s := LtStatement{ Id: 1234 }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
@@ -362,13 +362,13 @@ func TestNotStatement(t *testing.T) {
 }
 
 func TestLabelStatement(t *testing.T) {
-	s := LabelStatement{ Name: "test" }
+	s := LabelStatement{ Name: "test", Function: "f"}
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
 	expected := []string{
-		"// label test",
-		"(test)",
+		"// label f.test",
+		"(f.test)",
 	}
 
 	if len(actual) != len(expected){
@@ -384,13 +384,13 @@ func TestLabelStatement(t *testing.T) {
 }
 
 func TestGotoStatement(t *testing.T) {
-	s := GotoStatement{ Name: "test" }
+	s := GotoStatement{ Name: "test", Function: "f" }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
 	expected := []string{
-		"// goto test",
-		"@test",
+		"// goto f.test",
+		"@f.test",
 		"0;JMP",
 	}
 
@@ -407,20 +407,20 @@ func TestGotoStatement(t *testing.T) {
 }
 
 func TestIfGotoStatement(t *testing.T) {
-	s := IfGotoStatement{ Name: "test", Id: 2 }
+	s := IfGotoStatement{ Name: "test", Id: 2, Function: "f" }
 	var cw CodeWriter
 	s.Compile(&cw)
 	actual := strings.Split(strings.TrimSpace(cw.String()), "\n")
 	expected := []string{
-		"// if-goto test",
+		"// if-goto f.test",
 		"@SP",
 		"AM=M-1",
 		"D=M",
-		"@test-FALSE-2",
+		"@f.test$2",
 		"D;JEQ",
-		"@test",
+		"@f.test",
 		"0;JMP",
-		"(test-FALSE-2)",
+		"(f.test$2)",
 	}
 
 	if len(actual) != len(expected){
@@ -444,7 +444,7 @@ func TestFunctionStatement(t *testing.T) {
 		"// function f.test 2",
 		"(f.test)",
 		"@SP",
-		"D=A",
+		"D=M",
 		"@LCL",
 		"AM=D",
 		"M=0",

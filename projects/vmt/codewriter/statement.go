@@ -16,8 +16,6 @@ func (l *Location) Address() string {
 		return "@THIS"
 	case "that":
 		return "@THAT"
-	case "static":
-		return "@16"
 	case "pointer":
 		return "@THIS"
 	case "temp":
@@ -31,9 +29,14 @@ type Statement interface {
 	Compile(*CodeWriter)
 }
 
+
 type LocationStatement struct {
 	Location Location
 	Argument int
+}
+
+func (s *LocationStatement) Address() string {
+	return s.Location.Address()
 }
 
 
@@ -49,6 +52,26 @@ func (s *PushConstStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// push constant %d", s.Argument)
 	cw.Writeln("@%d", s.Argument)
 	cw.Writeln("D=A")
+	cw.Writeln("@SP")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+	cw.Writeln("@SP")
+	cw.Writeln("M=M+1")
+}
+
+type PushStaticStatement struct {
+	File string
+	Argument int
+}
+
+func (s *PushStaticStatement) String() string {
+	return fmt.Sprintf("< push static %d >", s.Argument)
+}
+
+func (s *PushStaticStatement) Compile(cw *CodeWriter) {
+	cw.Writeln("// push static %d", s.Argument)
+	cw.Writeln("@%s.%d", s.File, s.Argument)
+	cw.Writeln("D=M")
 	cw.Writeln("@SP")
 	cw.Writeln("A=M")
 	cw.Writeln("M=D")
@@ -86,7 +109,7 @@ func (s *PushLocationStatement) String() string {
 
 func (s *PushLocationStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// push %v %v", s.Location, s.Argument)
-	cw.Writeln(s.Location.Address())
+	cw.Writeln(s.Address())
 
 	if s.Argument > 0 {
 		base := getBaseLocation(s.Location)
@@ -120,7 +143,7 @@ func (s *PopStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// pop %v %v", s.Location, s.Argument)
 
 	// set A to location + arg
-	cw.Writeln(s.Location.Address())
+	cw.Writeln(s.Address())
 	cw.Writeln("D=%s", base)
 	cw.Writeln("@%d", s.Argument)
 	cw.Writeln("D=D+A")
@@ -140,7 +163,38 @@ func (s *PopStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("M=D")
 }
 
-type AddStatement struct {}
+type PopStaticStatement struct {
+	File string
+	Argument int
+}
+
+func (s *PopStaticStatement) String() string {
+	return fmt.Sprintf("< pop static %d>", s.Argument)
+}
+
+func (s *PopStaticStatement) Compile(cw *CodeWriter) {
+	cw.Writeln("// pop static %v", s.Argument)
+
+	// set A to location + arg
+	cw.Writeln("@%s.%d", s.File, s.Argument)
+	cw.Writeln("D=A")
+
+	// store addr in R15
+	cw.Writeln("@R15")
+	cw.Writeln("M=D")
+
+	// dec stack pointer
+	cw.Writeln("@SP")
+	cw.Writeln("AM=M-1")
+
+	// load value
+	cw.Writeln("D=M")
+	cw.Writeln("@R15")
+	cw.Writeln("A=M")
+	cw.Writeln("M=D")
+}
+
+type AddStatement struct { }
 func (s *AddStatement) String() string { return "< add >"}
 func (s *AddStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// add")
@@ -151,7 +205,7 @@ func (s *AddStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("M=D+M")
 }
 
-type SubStatement struct {}
+type SubStatement struct { }
 func (s *SubStatement) String() string { return "< sub >"}
 func (s *SubStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// sub")
@@ -162,7 +216,7 @@ func (s *SubStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("M=M-D")
 }
 
-type NegStatement struct {}
+type NegStatement struct { }
 func (s *NegStatement) String() string { return "< neg >"}
 func (s *NegStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("// neg")
@@ -298,25 +352,25 @@ func (s *NotStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("M=!M")
 }
 
-type LabelStatement struct { Name string }
+type LabelStatement struct { Name string; Function string }
 func (s *LabelStatement) String() string { return fmt.Sprintf("< label %s >", s.Name)}
 func (s *LabelStatement) Compile(cw *CodeWriter) {
-	cw.Writeln("// label %s", s.Name)
-	cw.Writeln("(%s)", s.Name)
+	cw.Writeln("// label %s.%s", s.Function, s.Name)
+	cw.Writeln("(%s.%s)", s.Function, s.Name)
 }
 
-type GotoStatement struct { Name string }
+type GotoStatement struct { Name string; Function string }
 func (s *GotoStatement) String() string { return fmt.Sprintf("< goto %s >", s.Name)}
 func (s *GotoStatement) Compile(cw *CodeWriter) {
-	cw.Writeln("// goto %s", s.Name)
-	cw.Writeln("@%s", s.Name)
+	cw.Writeln("// goto %s.%s", s.Function, s.Name)
+	cw.Writeln("@%s.%s", s.Function, s.Name)
 	cw.Writeln("0;JMP")
 } 
 
-type IfGotoStatement struct { Name string; Id int }
+type IfGotoStatement struct { Name string; Id int; Function string }
 func (s *IfGotoStatement) String() string { return fmt.Sprintf("< if-goto %s>", s.Name)}
 func (s *IfGotoStatement) Compile(cw *CodeWriter) {
-	cw.Writeln("// if-goto %s", s.Name)
+	cw.Writeln("// if-goto %s.%s", s.Function, s.Name)
 
 	// pop top of stack
 	cw.Writeln("@SP")
@@ -324,11 +378,11 @@ func (s *IfGotoStatement) Compile(cw *CodeWriter) {
 	cw.Writeln("D=M")
 
 	// check eq 0
-	cw.Writeln("@%s-FALSE-%d", s.Name, s.Id)
+	cw.Writeln("@%s.%s$%d", s.Function, s.Name, s.Id)
 	cw.Writeln("D;JEQ")
-	cw.Writeln("@%s", s.Name)
+	cw.Writeln("@%s.%s", s.Function, s.Name)
 	cw.Writeln("0;JMP")
-	cw.Writeln("(%s-FALSE-%d)", s.Name, s.Id)
+	cw.Writeln("(%s.%s$%d)", s.Function, s.Name, s.Id)
 }
 
 type FunctionStatement struct { Name string; Nvars int }
@@ -362,7 +416,7 @@ type CallStatement struct {
 }
 func (s *CallStatement) String() string { return fmt.Sprintf("< call %s %d >", s.Name, s.Nargs) }
 func (s *CallStatement) Compile(cw *CodeWriter) {
-	returnId := fmt.Sprintf("return.%s.%d", s.Name, s.Id)
+	returnId := fmt.Sprintf("%s$ret.%d", s.Name, s.Id)
 	nargs := s.Nargs
 
 	cw.Writeln("// call %s %d", s.Name, s.Nargs)

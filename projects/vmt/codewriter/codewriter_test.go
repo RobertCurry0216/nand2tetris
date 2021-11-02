@@ -15,13 +15,28 @@ func TestCodewriter(t *testing.T) {
 	pop.Argument = 4
 
 	input := []Statement{
-		&PushConstStatement{ 8 },
+		&PushConstStatement{ Argument: 8 },
 		&pushLoc,
 		&AddStatement{},
 		&pop,
 	}
 
 	expected := []string{
+		"// bootstrap",
+		"@261",
+		"D=A",
+		"@SP",
+		"M=D",
+		"@LCL",
+		"M=0",
+		"@ARG",
+		"M=0",
+		"@THIS",
+		"M=0",
+		"@THAT",
+		"M=0",
+		"@Sys.init",
+		"0;JMP",
 		"// push constant 8",
 		"@8",
 		"D=A",

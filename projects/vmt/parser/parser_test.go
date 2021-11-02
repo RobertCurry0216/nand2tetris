@@ -14,7 +14,8 @@ func expectEq(t *testing.T, a, b interface{}){
 
 func TestParseLine_ExtraSpaces(t *testing.T){
 	line := " push  local  3 "
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -28,7 +29,8 @@ func TestParseLine_ExtraSpaces(t *testing.T){
 
 func TestParseLine_Comments(t *testing.T){
 	line := "push local 3 // hello world"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -42,7 +44,8 @@ func TestParseLine_Comments(t *testing.T){
 
 func TestParseLine_Fail(t *testing.T){
 	line := "pish local 3"
-	_, parsed := parseLine(line, 1)
+	var p Parser
+	_, parsed := p.parseLine(line, 1, "")
 
 	if parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -52,7 +55,8 @@ func TestParseLine_Fail(t *testing.T){
 
 func TestParseLine_Push(t *testing.T){
 	line := "push local 3"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -69,7 +73,8 @@ func TestParseLine_Push(t *testing.T){
 
 func TestParseLine_PushConst(t *testing.T){
 	line := "push constant 3"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -85,7 +90,8 @@ func TestParseLine_PushConst(t *testing.T){
 
 func TestParseLine_Pop(t *testing.T){
 	line := "pop local 3"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -102,7 +108,8 @@ func TestParseLine_Pop(t *testing.T){
 
 func TestParseLine_Add(t *testing.T){
 	line := "add"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -116,7 +123,8 @@ func TestParseLine_Add(t *testing.T){
 
 func TestParseLine_Sub(t *testing.T){
 	line := "sub"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -130,7 +138,8 @@ func TestParseLine_Sub(t *testing.T){
 
 func TestParseLine_Neg(t *testing.T){
 	line := "neg"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -144,7 +153,8 @@ func TestParseLine_Neg(t *testing.T){
 
 func TestParseLine_Eq(t *testing.T){
 	line := "eq"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -160,7 +170,8 @@ func TestParseLine_Eq(t *testing.T){
 
 func TestParseLine_Gt(t *testing.T){
 	line := "gt"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -176,7 +187,8 @@ func TestParseLine_Gt(t *testing.T){
 
 func TestParseLine_Lt(t *testing.T){
 	line := "lt"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -192,7 +204,8 @@ func TestParseLine_Lt(t *testing.T){
 
 func TestParseLine_And(t *testing.T){
 	line := "and"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -206,7 +219,8 @@ func TestParseLine_And(t *testing.T){
 
 func TestParseLine_Or(t *testing.T){
 	line := "or"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -220,7 +234,8 @@ func TestParseLine_Or(t *testing.T){
 
 func TestParseLine_Not(t *testing.T){
 	line := "not"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -234,7 +249,8 @@ func TestParseLine_Not(t *testing.T){
 
 func TestParseLine_Label(t *testing.T){
 	line := "label hello-world"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -250,7 +266,8 @@ func TestParseLine_Label(t *testing.T){
 
 func TestParseLine_Goto(t *testing.T){
 	line := "goto hello-world"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)
@@ -266,7 +283,8 @@ func TestParseLine_Goto(t *testing.T){
 
 func TestParseLine_IfGoto(t *testing.T){
 	line := "if-goto hello-world"
-	s, parsed := parseLine(line, 1)
+	var p Parser
+	s, parsed := p.parseLine(line, 1, "")
 
 	if !parsed {
 		t.Errorf("failed to parse line: %s", line)

@@ -7,25 +7,28 @@ import (
 	cw "vmt/codewriter"
 )
 
-func Parse(bytecode string) []cw.Statement {
-	statements := make([]cw.Statement, 0, 1000)
-	
-	for i, line := range strings.Split(bytecode, "\n") {
-		stmt, ok := parseLine(line, i)
+type Parser struct {
+	id int
+	Statements []cw.Statement
+	Function string
+}
+
+func (p *Parser) Parse(bytecode string, file string) {
+	for _, line := range strings.Split(bytecode, "\n") {
+		stmt, ok := p.parseLine(line, p.id, file)
+		p.id++
 
 		if !ok {
 			panic(fmt.Sprintf("error parsing line: %s", line))
 		}
 
 		if stmt != nil {
-			statements = append(statements, stmt)		
+			p.Statements = append(p.Statements, stmt)		
 		}
 	}
-
-	return statements
 }
 
-func parseLine(bytecode string, n int) (cw.Statement, bool) {
+func (p *Parser) parseLine(bytecode string, n int, file string) (cw.Statement, bool) {
 	code := strings.Split(bytecode, "//")[0]
 	code = strings.TrimSpace(code)
 	if len(code) == 0 {
@@ -44,6 +47,12 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 					Argument: arg,
 				}
 				return statement, true
+			case "static":
+				statement := &cw.PushStaticStatement{
+					File: file,
+					Argument: arg,
+				}
+				return statement, true
 			default:
 				statement := &cw.PushLocationStatement{}
 				statement.Location = cw.Location(words[1])
@@ -55,11 +64,19 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 			arg, err := strconv.Atoi(words[2])
 			if err != nil { panic(err) }
 
-			statement := &cw.PopStatement{}
-			statement.Location = cw.Location(words[1])
-			statement.Argument = arg
-			return statement, true
-
+			switch words[1] {
+			case "static":
+				statement := &cw.PopStaticStatement{
+					File: file,
+					Argument: arg,
+				}
+				return statement, true
+			default:
+				statement := &cw.PopStatement{}
+				statement.Location = cw.Location(words[1])
+				statement.Argument = arg
+				return statement, true
+			}
 		case "add":
 			statement := &cw.AddStatement{}
 			return statement, true
@@ -97,21 +114,22 @@ func parseLine(bytecode string, n int) (cw.Statement, bool) {
 			return statement, true
 
 		case "label":
-			statement := &cw.LabelStatement{ Name: words[1] }
+			statement := &cw.LabelStatement{ Name: words[1], Function: p.Function }
 			return statement, true
 
 		case "goto":
-			statement := &cw.GotoStatement{ Name: words[1] }
+			statement := &cw.GotoStatement{ Name: words[1], Function: p.Function }
 			return statement, true
 
 		case "if-goto":
-			statement := &cw.IfGotoStatement{ Name: words[1], Id: n}
+			statement := &cw.IfGotoStatement{ Name: words[1], Id: n, Function: p.Function}
 			return statement, true
 
 		case "function":
 			arg, err := strconv.Atoi(words[2])
 			if err != nil { panic(err) }
 			statement := &cw.FunctionStatement{ Name: words[1], Nvars: arg }
+			p.Function = words[1]
 			return statement, true
 
 		case "call":
