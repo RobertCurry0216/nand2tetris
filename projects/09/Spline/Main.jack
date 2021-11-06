@@ -1,0 +1,19 @@
+class Main {
+  function void main() {
+    var Vector v1;
+    var Vector v2;
+    var Vector v3;
+    var Vector v4;
+    var Spline s;
+
+    let v1 = Vector.new(0, 0);
+    let v2 = Vector.new(0, 300);
+    let v3 = Vector.new(300, 0);
+    let v4 = Vector.new(300, 100);
+
+    let s = Spline.new(v1, v2, v3, v4);
+    do s.draw();
+    
+    return;
+  }
+}

@@ -1,0 +1,59 @@
+class Spline {
+  field Vector a;
+  field Vector b;
+  field Vector c;
+  field Vector d;
+
+  constructor Spline new (Vector a_, Vector b_, Vector c_, Vector d_) {
+    let a = a_;
+    let b = b_;
+    let c = c_;
+    let d = d_;
+    return this;
+  }
+
+
+  // drawing methods
+
+  method void draw(){
+    var Vector prev; var Vector l1; var Vector l2; var Vector l3; var Vector l4; var Vector l5; var Vector l6;
+    var int i;
+
+    let prev = a.copy();
+    let i = 1;
+    while (i < 101) {
+      let l1 = Vector.lerp(a, b, i);
+      let l2 = Vector.lerp(b, c, i);
+      let l3 = Vector.lerp(c, d, i);
+
+      let l4 = Vector.lerp(l1, l2, i);
+      let l5 = Vector.lerp(l2, l3, i);
+
+      let l6 = Vector.lerp(l4, l5, i);
+
+      // draw line
+      do Spline.segment(prev, l6);
+
+      // dispose
+      do l1.dispose();
+      do l2.dispose();
+      do l3.dispose();
+      do l4.dispose();
+      do l5.dispose();
+      do prev.dispose();
+
+      // inc for next cycle
+      let prev = l6;
+      let i = i + 1;
+    }
+
+    do prev.dispose();
+    return;
+  }
+
+
+  function void segment(Vector v1, Vector v2){
+    do Screen.drawLine(v1.getX(), v1.getY(), v2.getX(), v2.getY());
+    return;
+  }
+}

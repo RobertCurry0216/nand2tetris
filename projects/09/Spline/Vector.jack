@@ -1,0 +1,85 @@
+class Vector {
+  field int x;
+  field int y;
+
+  constructor Vector new(int x_, int y_) {
+    let x = x_;
+    let y = y_;
+
+    return this;
+  }
+
+  // getters
+  method int getX() { return x; }
+  method int getY() { return y; }
+
+  // setters
+  method void setX(int x_) { let x = x_; return;}
+  method void setY(int y_) { let y = y_; return;}
+
+  // methods
+
+  method void draw() {
+    do Screen.drawCircle(x, y, 3);
+    return;
+  }
+
+  method void string() {
+    do Output.printString("<");
+    do Output.printInt(x);
+    do Output.printString(", ");
+    do Output.printInt(y);
+    do Output.printString(">");
+
+    return;
+  }
+
+  method Vector copy() {
+    return Vector.new(x, y);
+  }
+
+  method void dispose(){
+    do Memory.deAlloc(this);
+    return;
+  }
+
+  // math
+
+  method void add(Vector other) {
+    let x = x + other.getX();
+    let y = y + other.getY();
+    return;
+  }
+
+  method void sub(Vector other) {
+    let x = x - other.getX();
+    let y = y - other.getY();
+    return;
+  }
+
+  method void mul(int scalar) {
+    let x = x * scalar;
+    let y = y * scalar;
+    return;
+  }
+
+  method void div(int scalar) {
+    let x = x / scalar;
+    let y = y / scalar;
+    return;
+  }
+
+  // static methods
+
+  function Vector lerp (Vector a, Vector b, int t) {
+    var Vector out;
+    let out = b.copy();
+
+    do out.sub(a);
+    do out.mul(t);
+    do out.div(100);
+    do out.add(a);
+
+    return out;
+  }
+}

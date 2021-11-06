@@ -1,0 +1,106 @@
+function Spline.new 0
+push constant 4
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push argument 1
+pop this 1
+push argument 2
+pop this 2
+push argument 3
+pop this 3
+push pointer 0
+return
+function Spline.draw 8
+push argument 0
+pop pointer 0
+push this 0
+call Vector.copy 1
+pop local 0
+push constant 1
+pop local 7
+label WHILE_EXP0
+push local 7
+push constant 101
+lt
+not
+if-goto WHILE_END0
+push this 0
+push this 1
+push local 7
+call Vector.lerp 3
+pop local 1
+push this 1
+push this 2
+push local 7
+call Vector.lerp 3
+pop local 2
+push this 2
+push this 3
+push local 7
+call Vector.lerp 3
+pop local 3
+push local 1
+push local 2
+push local 7
+call Vector.lerp 3
+pop local 4
+push local 2
+push local 3
+push local 7
+call Vector.lerp 3
+pop local 5
+push local 4
+push local 5
+push local 7
+call Vector.lerp 3
+pop local 6
+push local 0
+push local 6
+call Spline.segment 2
+pop temp 0
+push local 1
+call Vector.dispose 1
+pop temp 0
+push local 2
+call Vector.dispose 1
+pop temp 0
+push local 3
+call Vector.dispose 1
+pop temp 0
+push local 4
+call Vector.dispose 1
+pop temp 0
+push local 5
+call Vector.dispose 1
+pop temp 0
+push local 0
+call Vector.dispose 1
+pop temp 0
+push local 6
+pop local 0
+push local 7
+push constant 1
+add
+pop local 7
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+call Vector.dispose 1
+pop temp 0
+push constant 0
+return
+function Spline.segment 0
+push argument 0
+call Vector.getX 1
+push argument 0
+call Vector.getY 1
+push argument 1
+call Vector.getX 1
+push argument 1
+call Vector.getY 1
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+return

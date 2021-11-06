@@ -1,0 +1,168 @@
+function Vector.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push argument 1
+pop this 1
+push pointer 0
+return
+function Vector.getX 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Vector.getY 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function Vector.setX 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 0
+push constant 0
+return
+function Vector.setY 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 1
+push constant 0
+return
+function Vector.draw 0
+push argument 0
+pop pointer 0
+push this 0
+push this 1
+push constant 3
+call Screen.drawCircle 3
+pop temp 0
+push constant 0
+return
+function Vector.string 0
+push argument 0
+pop pointer 0
+push constant 1
+call String.new 1
+push constant 60
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push this 0
+call Output.printInt 1
+pop temp 0
+push constant 2
+call String.new 1
+push constant 44
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push this 1
+call Output.printInt 1
+pop temp 0
+push constant 1
+call String.new 1
+push constant 62
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 0
+return
+function Vector.copy 0
+push argument 0
+pop pointer 0
+push this 0
+push this 1
+call Vector.new 2
+return
+function Vector.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function Vector.add 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Vector.getX 1
+add
+pop this 0
+push this 1
+push argument 1
+call Vector.getY 1
+add
+pop this 1
+push constant 0
+return
+function Vector.sub 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Vector.getX 1
+sub
+pop this 0
+push this 1
+push argument 1
+call Vector.getY 1
+sub
+pop this 1
+push constant 0
+return
+function Vector.mul 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Math.multiply 2
+pop this 0
+push this 1
+push argument 1
+call Math.multiply 2
+pop this 1
+push constant 0
+return
+function Vector.div 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Math.divide 2
+pop this 0
+push this 1
+push argument 1
+call Math.divide 2
+pop this 1
+push constant 0
+return
+function Vector.lerp 1
+push argument 1
+call Vector.copy 1
+pop local 0
+push local 0
+push argument 0
+call Vector.sub 2
+pop temp 0
+push local 0
+push argument 2
+call Vector.mul 2
+pop temp 0
+push local 0
+push constant 100
+call Vector.div 2
+pop temp 0
+push local 0
+push argument 0
+call Vector.add 2
+pop temp 0
+push local 0
+return
