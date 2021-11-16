@@ -95,6 +95,8 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 		return p.parseReturnStatement()
 	case token.WHILE:
 		return p.parseWhileStatement()
+	case token.IF:
+		return p.parseIfStatement()
 	default:
 		return nil, errors.New("error reading statement, unexpected token: " + p.curToken.Literal)
 	}
