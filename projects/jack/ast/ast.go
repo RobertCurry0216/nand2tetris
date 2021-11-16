@@ -152,3 +152,42 @@ func (ws *WhileStatement) String() string {
 
 	return sb.String()
 }
+
+
+// IfStatement => if (<exp>) {<statements>} ?else {<statements>}
+type IfStatement struct {
+	Token token.Token
+	Expression Expression
+	Statements []Statement
+	ElseStatements []Statement
+}
+
+func (is *IfStatement) Statement() {}
+func (is *IfStatement) TokenLiteral() string { return is.Token.Literal }
+
+func (is *IfStatement) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(is.TokenLiteral())
+	sb.WriteString(" (")
+	sb.WriteString(is.Expression.String())
+	sb.WriteString(") {\n")
+	for _, s := range is.Statements {
+		sb.WriteString("\t")
+		sb.WriteString(s.String())
+		sb.WriteString("\n")
+	}
+	sb.WriteString("}")
+
+	if len(is.ElseStatements) > 0 {
+		sb.WriteString(" eles {\n")
+		for _, s := range is.ElseStatements {
+			sb.WriteString("\t")
+			sb.WriteString(s.String())
+			sb.WriteString("\n")
+		}
+		sb.WriteString("}")
+	}
+
+	return sb.String()
+}

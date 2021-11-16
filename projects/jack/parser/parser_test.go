@@ -145,3 +145,30 @@ func TestParseWhileStatement(t *testing.T) {
 	assert(t, "WhileStatement", actual.Statements[0].String(), "let x = 3;")
 	assert(t, "WhileStatement", actual.Statements[1].String(), "do foobar;")
 }
+
+
+func TestParseIfStatement(t *testing.T) {
+	test := `
+	if (bool) {
+		let x = 4;
+		do foobar;
+	} else {
+		let y = 4;
+	}`
+
+	lexer := lexer.New(test)
+	parser := New(lexer)
+
+	actual, err := parser.parseIfStatement()
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	assert(t, "IfStatement", actual.Expression.String(), "bool")
+	assert(t, "IfStatement", len(actual.Statements), 2)
+	assert(t, "IfStatement", len(actual.ElseStatements), 1)
+	assert(t, "IfStatement", actual.Statements[0].String(), "let x = 4;")
+	assert(t, "IfStatement", actual.Statements[1].String(), "do foobar;")
+	assert(t, "IfStatement", actual.ElseStatements[0].String(), "let y = 4;")
+}

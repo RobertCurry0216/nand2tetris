@@ -96,7 +96,7 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.WHILE:
 		return p.parseWhileStatement()
 	default:
-		return nil, errors.New("unexpected token: " + p.curToken.Literal)
+		return nil, errors.New("error reading statement, unexpected token: " + p.curToken.Literal)
 	}
 }
 
@@ -182,6 +182,29 @@ func (p *Parser) parseDoStatement() (*ast.DoStatement, error) {
 	return stmt, nil
 }
 
+// parseCodeBlock => {<statements>}
+func (p *Parser) parseCodeBlock() ([]ast.Statement, error) {
+	stmts := []ast.Statement{}
+
+	if !p.checkAndEat(token.LBRACE)  {
+		return nil, tokenError(token.LBRACE, p.curToken.Literal)
+	}
+
+	for p.curToken.Type != token.RBRACE {
+		if s, err := p.parseStatement(); err == nil {
+			stmts = append(stmts, s)
+		} else {
+			return nil, err
+		}
+	}
+
+	if !p.checkAndEat(token.RBRACE)  {
+		return nil, tokenError(token.LBRACE, p.curToken.Literal)
+	}
+
+	return stmts, nil
+}
+
 
 // parseWhileStatement => while (<exp>) {<statements>}
 func (p *Parser) parseWhileStatement() (*ast.WhileStatement, error) {
@@ -201,20 +224,48 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStatement, error) {
 	if !p.checkAndEat(token.RPAREN) {
 		return nil, tokenError(token.RPAREN, p.curToken.Literal)
 	}
-	if !p.checkAndEat(token.LBRACE)  {
-		return nil, tokenError(token.LBRACE, p.curToken.Literal)
+	
+	if stmts, err := p.parseCodeBlock(); err == nil {
+		stmt.Statements = stmts
+	} else {
+		return nil, err
 	}
 
-	for p.curToken.Type != token.RBRACE {
-		if s, err := p.parseStatement(); err == nil {
-			stmt.Statements = append(stmt.Statements, s)
+	return stmt, nil
+}
+
+
+// parseIfStatement => if (<exp>) {<statements>} ? else {<statements>}
+func (p *Parser) parseIfStatement() (*ast.IfStatement, error) {
+	stmt := &ast.IfStatement{Token: p.curToken}
+
+	if !p.peekAndEat(token.LPAREN) {
+		return nil, tokenError(token.LPAREN, p.curToken.Literal)
+	}
+	p.eatToken()
+
+	if exp, err := p.parseExpression(); err == nil {
+		stmt.Expression = exp
+	} else {
+		return nil, err
+	}
+
+	if !p.checkAndEat(token.RPAREN) {
+		return nil, tokenError(token.RPAREN, p.curToken.Literal)
+	}
+	
+	if stmts, err := p.parseCodeBlock(); err == nil {
+		stmt.Statements = stmts
+	} else {
+		return nil, err
+	}
+
+	if p.checkAndEat(token.ELSE) {
+		if stmts, err := p.parseCodeBlock(); err == nil {
+			stmt.ElseStatements = stmts
 		} else {
 			return nil, err
 		}
-	}
-
-	if !p.checkAndEat(token.RBRACE)  {
-		return nil, tokenError(token.LBRACE, p.curToken.Literal)
 	}
 
 	return stmt, nil
