@@ -10,7 +10,7 @@ func TestLexer(t *testing.T) {
 		class foo {
 			function bar() {
 				let x = 5;
-				do func("hello");
+				do func("hello", "world");
 				let y = 1 + 2 * 5;
 				return;
 			}
@@ -35,6 +35,8 @@ func TestLexer(t *testing.T) {
 		{Type: token.IDENT, Literal: "func"},
 		{Type: token.LPAREN, Literal: "("},
 		{Type: token.STRING, Literal: "hello"},
+		{Type: token.COMMA, Literal: ","},
+		{Type: token.STRING, Literal: "world"},
 		{Type: token.RPAREN, Literal: ")"},
 		{Type: token.SEMICOLON, Literal: ";"},
 		{Type: token.LET, Literal: "let"},
