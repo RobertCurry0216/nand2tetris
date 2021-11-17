@@ -12,6 +12,21 @@ type Node interface {
 	String() string
 }
 
+type TypeDeclaration struct {
+	Token token.Token
+	Declaration token.Token
+	Type token.Token
+	Name Identifier
+}
+
+func (td *TypeDeclaration) TokenLiteral() string {
+	return td.TokenLiteral()
+}
+
+func (td *TypeDeclaration) String() string {
+	return fmt.Sprintf("%s %s %s;", td.TokenLiteral(), td.Type.Literal, td.Name.String())
+}
+
 // expressions -----------------------------------------------------------------
 type Expression interface {
 	Node

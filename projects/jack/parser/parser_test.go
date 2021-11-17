@@ -13,6 +13,42 @@ func assert(t *testing.T, n string, a, b interface{}) {
 	}
 }
 
+func TestParseTypeDecelration(t *testing.T) {
+	type dec struct {
+		expDec string
+		expType string
+		expIdent string
+	}
+
+	tests := []struct {
+		input string
+		expDecs []dec
+	}{
+		{"var int x;", []dec{{"var", "int", "x"}}},
+		{"static boolean x, y, z;", []dec{{"static", "boolean", "x"}, {"static", "boolean", "y"}, {"static", "boolean", "z"}}},
+		{"field char a;", []dec{{"field", "char", "a"}}},
+	}
+
+	for _, test := range tests {
+		lexer := lexer.New(test.input)
+		parser := New(lexer)
+
+		actual, err := parser.parseTypeDeclaration()
+
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		assert(t, "TypeDecelration", len(test.expDecs), len(actual))
+
+		for i, d := range actual {	
+			assert(t, "TypeDecelration", test.expDecs[i].expDec, d.Declaration.Literal)
+			assert(t, "TypeDecelration", test.expDecs[i].expType, d.Type.Literal)
+			assert(t, "TypeDecelration", test.expDecs[i].expIdent, d.Name.Name)
+		}
+	}
+}
+
 
 func TestParseLetStatement(t *testing.T) {
 	tests := []struct {
@@ -86,8 +122,8 @@ func TestParseReturnStatement(t *testing.T) {
 		input string
 		expValue interface{}
 	}{
-		{"return foobar;", "foobar"},
-		{"return 3;", 3},
+		{"return;", nil},
+		{"return 3;", "3"},
 	}
 
 	for _, test := range tests {
@@ -100,7 +136,11 @@ func TestParseReturnStatement(t *testing.T) {
 			t.Fatalf(err.Error())
 		}
 
-		assert(t, "ReturnStatement", test.expValue, actual.Value.String())
+		if test.expValue == nil {
+			assert(t, "ReturnStatement", test.expValue, actual.Value)
+		} else {
+			assert(t, "ReturnStatement", test.expValue, actual.Value.String())
+		}
 	}
 }
 

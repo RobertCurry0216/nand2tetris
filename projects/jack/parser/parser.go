@@ -29,7 +29,9 @@ func (p *Parser) eatToken() {
 
 func (p *Parser) checkAndEat(token token.Type) bool {
 	b := p.curToken.Type == token
-	p.eatToken()
+	if b {	
+		p.eatToken()
+	}
 	return b
 }
 
@@ -48,6 +50,56 @@ func (p *Parser) peekAndEat(token token.Type) bool {
 // error helpers
 func tokenError(exp, got string) error {
 	return errors.New(fmt.Sprintf("unexpected token, expected %s, got %s", exp, got))
+}
+
+// parseTypeDeclaration => var <type> <ident>;
+func (p *Parser) parseTypeDeclaration() ([]ast.TypeDeclaration, error) {
+	decs := []ast.TypeDeclaration{}
+
+	dec := p.curToken
+	p.eatToken()
+
+	var typ token.Token
+	switch p.curToken.Type {
+		case token.INT: fallthrough
+		case token.CHAR: fallthrough
+		case token.BOOLEAN: fallthrough
+		case token.IDENT:
+			typ = p.curToken
+		default:
+			return nil, tokenError("int | char | boolean | ident", p.curToken.Literal)
+	}
+	
+	for {
+		if !p.peekAndEat(token.IDENT) {
+			return nil, tokenError(token.IDENT, p.peekToken.Literal)
+		}
+
+		if ident, err := p.parseIdentifier(); err == nil {
+			i, ok := ident.(*ast.Identifier)
+
+			if !ok {
+				return nil, errors.New("error parsing declaration: " + ident.String())
+			}
+
+			d := ast.TypeDeclaration{Token: i.Token, Declaration: dec, Type: typ, Name: *i}
+			decs = append(decs, d)
+
+		} else {
+			return nil, err
+		}
+
+		if p.peekAndEat(token.COMMA) {
+			continue
+		} else if p.peekAndEat(token.SEMICOLON) {
+			p.eatToken()
+			break
+		} else {
+			return nil, tokenError(", | ;", p.curToken.Literal)
+		}
+	}
+
+	return decs, nil
 }
 
 // Expression parser functions
@@ -147,6 +199,8 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 		p.eatToken()
 		return stmt, nil
 	}
+
+	p.eatToken()
 
 	if exp, err := p.parseExpression(); err == nil {
 		stmt.Value = exp
