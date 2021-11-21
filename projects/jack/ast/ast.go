@@ -98,13 +98,32 @@ func (td *TypeDeclaration) String() string {
 	return sb.String()
 }
 
+type ParamDeclaration struct {
+	Token token.Token
+	Type token.Token
+	Name *Identifier
+}
+
+func (pd *ParamDeclaration) Statement() {}
+func (pd *ParamDeclaration) TokenLiteral() string {
+	return pd.Token.Literal
+}
+
+func (pd *ParamDeclaration) String() string {
+	var sb strings.Builder
+	sb.WriteString(pd.Type.Literal)
+	sb.WriteString(" ")
+	sb.WriteString(pd.Name.String())
+	return sb.String()
+}
+
 type SubroutineDeclaration struct {
 	Token token.Token
 	Decelration token.Token
 	ReturnType token.Token
 	Name Identifier
-	Parameters []*Statement
-	Body []*Statement
+	Parameters []*ParamDeclaration
+	Body []Statement
 }
 
 func (sd *SubroutineDeclaration) Statement() {}
@@ -124,9 +143,17 @@ func (sd *SubroutineDeclaration) String() string {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString((*param).String())
+		sb.WriteString(param.String())
 	}
 
+	sb.WriteString(") {")
+	for _, stmt := range sd.Body {
+		sb.WriteString("\t")
+		sb.WriteString(stmt.String())
+	}
+	sb.WriteString("}")
+
+	return sb.String()
 }
 
 // LetStatement is used when assigning vars

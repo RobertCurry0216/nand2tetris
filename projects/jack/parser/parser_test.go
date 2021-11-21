@@ -3,6 +3,7 @@ package parser
 import (
 	"jack/ast"
 	"jack/lexer"
+	"jack/token"
 	"testing"
 )
 
@@ -208,4 +209,71 @@ func TestParseIfStatement(t *testing.T) {
 	assert(t, "IfStatement", actual.Statements[0].String(), "let x = 4;")
 	assert(t, "IfStatement", actual.Statements[1].String(), "do foobar;")
 	assert(t, "IfStatement", actual.ElseStatements[0].String(), "let y = 4;")
+}
+
+func TestParseParamList(t *testing.T) {
+	type exp struct {
+		dec string
+		name string
+	}
+
+	type testType struct {
+		input string
+		decs []exp
+	}
+
+
+	tests := []testType{
+		{"()", []exp{}},
+		{"(int a)", []exp{{"int", "a"}}},
+		{"(bool x, string y, Vector z)",
+			[]exp{{"bool", "x"}, {"string", "y"}, {"Vector", "z"}},
+		},
+	}
+
+	for _, test := range tests {
+		lexer := lexer.New(test.input)
+		parser := New(lexer)
+
+		actual, err := parser.parseParameterList()
+
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		assert(t, "ParameterList", len(test.decs), len(actual))
+
+		for i, dec := range actual {
+			assert(t, "ParameterList", test.decs[i].dec, dec.Type.Literal)
+			assert(t, "ParameterList", test.decs[i].name, dec.Name.String())
+		}
+	}
+}
+
+
+func TestParseSubroutineDeclaration(t *testing.T) {
+	test := `
+		method void sumValues(int a, int b) {
+			let c = 1;
+			do add;
+			return c;
+		}
+	`
+
+	lexer := lexer.New(test)
+	parser := New(lexer)
+
+	actual, err := parser.parseSubroutineDeclaration()
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	n := "SubroutineDeclaration"
+
+	assert(t, n, token.Type(token.METHOD), actual.Decelration.Type)
+	assert(t, n, token.Type(token.VOID), actual.ReturnType.Type)
+	assert(t, n, "sumValues", actual.Name.String())
+	assert(t, n, 2, len(actual.Parameters))
+	assert(t, n, 3, len(actual.Body))
 }

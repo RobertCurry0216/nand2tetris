@@ -34,48 +34,69 @@ func (l *Lexer) NextToken() token.Token {
 	for !ok {
 		switch l.ch {
 		case '{':
+			ok = true
 			tok = token.New(token.LBRACE, l.ch)
 		case '}':
+			ok = true
 			tok = token.New(token.RBRACE, l.ch)
 		case '(':
+			ok = true
 			tok = token.New(token.LPAREN, l.ch)
 		case ')':
+			ok = true
 			tok = token.New(token.RPAREN, l.ch)
 		case '[':
+			ok = true
 			tok = token.New(token.LBRACKET, l.ch)
 		case ']':
+			ok = true
 			tok = token.New(token.RBRACKET, l.ch)
 		case '.':
+			ok = true
 			tok = token.New(token.DOT, l.ch)
 		case ',':
+			ok = true
 			tok = token.New(token.COMMA, l.ch)
 		case ';':
+			ok = true
 			tok = token.New(token.SEMICOLON, l.ch)
 		case '+':
+			ok = true
 			tok = token.New(token.PLUS, l.ch)
 		case '-':
+			ok = true
 			tok = token.New(token.MINUS, l.ch)
 		case '*':
+			ok = true
 			tok = token.New(token.ASTERISK, l.ch)
 		case '/':
+			ok = true
 			// TODO: handle comments
 			tok = token.New(token.SLASH, l.ch)
 		case '&':
+			ok = true
 			tok = token.New(token.AND, l.ch)
 		case '|':
+			ok = true
 			tok = token.New(token.OR, l.ch)
 		case '<':
+			ok = true
 			tok = token.New(token.LT, l.ch)
 		case '>':
+			ok = true
 			tok = token.New(token.GT, l.ch)
 		case '=':
+			ok = true
 			tok = token.New(token.EQ, l.ch)
 		case '~':
+			ok = true
 			tok = token.New(token.NOT, l.ch)
 			case '"': 
+			ok = true
 			tok.Type = token.STRING
 			tok.Literal = l.readString()
 		case 0:
+			ok = true
 			tok.Literal = ""
 			tok.Type = token.EOF
 			
