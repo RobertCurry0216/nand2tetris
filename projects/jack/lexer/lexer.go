@@ -27,68 +27,71 @@ func (l *Lexer) readChar() {
 
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
+	ok := false
 
 	l.skipWhitespace()
 
-	switch l.ch {
-	case '{':
-		tok = token.New(token.LBRACE, l.ch)
-	case '}':
-		tok = token.New(token.RBRACE, l.ch)
-	case '(':
-		tok = token.New(token.LPAREN, l.ch)
-	case ')':
-		tok = token.New(token.RPAREN, l.ch)
-	case '[':
-		tok = token.New(token.LBRACKET, l.ch)
-	case ']':
-		tok = token.New(token.RBRACKET, l.ch)
-	case '.':
-		tok = token.New(token.DOT, l.ch)
-	case ',':
-		tok = token.New(token.COMMA, l.ch)
-	case ';':
-		tok = token.New(token.SEMICOLON, l.ch)
-	case '+':
-		tok = token.New(token.PLUS, l.ch)
-	case '-':
-		tok = token.New(token.MINUS, l.ch)
-	case '*':
-		tok = token.New(token.ASTERISK, l.ch)
-	case '/':
-		tok = token.New(token.SLASH, l.ch)
-	case '&':
-		tok = token.New(token.AND, l.ch)
-	case '|':
-		tok = token.New(token.OR, l.ch)
-	case '<':
-		tok = token.New(token.LT, l.ch)
-	case '>':
-		tok = token.New(token.GT, l.ch)
-	case '=':
-		tok = token.New(token.EQ, l.ch)
-	case '~':
-		tok = token.New(token.NOT, l.ch)
-	case '"': 
-		tok.Type = token.STRING
-		tok.Literal = l.readString()
-	case 0:
-		tok.Literal = ""
-		tok.Type = token.EOF
-
-	default:
-		if isLetter(l.ch) {
-			tok.Literal = l.readIdentifier()
-			tok.Type = token.LookupIdent(tok.Literal)
-		} else if isDigit(l.ch) {
-			tok.Literal = l.readNumber()
-			tok.Type = token.INT
-		} else {
-			tok = token.New(token.ILLEGAL, l.ch)
+	for !ok {
+		switch l.ch {
+		case '{':
+			tok = token.New(token.LBRACE, l.ch)
+		case '}':
+			tok = token.New(token.RBRACE, l.ch)
+		case '(':
+			tok = token.New(token.LPAREN, l.ch)
+		case ')':
+			tok = token.New(token.RPAREN, l.ch)
+		case '[':
+			tok = token.New(token.LBRACKET, l.ch)
+		case ']':
+			tok = token.New(token.RBRACKET, l.ch)
+		case '.':
+			tok = token.New(token.DOT, l.ch)
+		case ',':
+			tok = token.New(token.COMMA, l.ch)
+		case ';':
+			tok = token.New(token.SEMICOLON, l.ch)
+		case '+':
+			tok = token.New(token.PLUS, l.ch)
+		case '-':
+			tok = token.New(token.MINUS, l.ch)
+		case '*':
+			tok = token.New(token.ASTERISK, l.ch)
+		case '/':
+			// TODO: handle comments
+			tok = token.New(token.SLASH, l.ch)
+		case '&':
+			tok = token.New(token.AND, l.ch)
+		case '|':
+			tok = token.New(token.OR, l.ch)
+		case '<':
+			tok = token.New(token.LT, l.ch)
+		case '>':
+			tok = token.New(token.GT, l.ch)
+		case '=':
+			tok = token.New(token.EQ, l.ch)
+		case '~':
+			tok = token.New(token.NOT, l.ch)
+			case '"': 
+			tok.Type = token.STRING
+			tok.Literal = l.readString()
+		case 0:
+			tok.Literal = ""
+			tok.Type = token.EOF
+			
+		default:
+			if isLetter(l.ch) {
+				tok.Literal = l.readIdentifier()
+				tok.Type = token.LookupIdent(tok.Literal)
+				} else if isDigit(l.ch) {
+					tok.Literal = l.readNumber()
+					tok.Type = token.INT
+				} else {
+					tok = token.New(token.ILLEGAL, l.ch)
+				}
+			return tok
 		}
-		return tok
 	}
-
 	l.readChar()
 	return tok
 }

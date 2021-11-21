@@ -7,6 +7,8 @@ import (
 
 func TestLexer(t *testing.T) {
 	const input = `
+		// this is a comment
+		/** this is a comment */
 		class foo {
 			function bar() {
 				let x = 5;

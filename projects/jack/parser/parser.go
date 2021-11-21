@@ -52,56 +52,6 @@ func tokenError(exp, got string) error {
 	return errors.New(fmt.Sprintf("unexpected token, expected %s, got %s", exp, got))
 }
 
-// parseTypeDeclaration => var <type> <ident>;
-func (p *Parser) parseTypeDeclaration() ([]ast.TypeDeclaration, error) {
-	decs := []ast.TypeDeclaration{}
-
-	dec := p.curToken
-	p.eatToken()
-
-	var typ token.Token
-	switch p.curToken.Type {
-		case token.INT: fallthrough
-		case token.CHAR: fallthrough
-		case token.BOOLEAN: fallthrough
-		case token.IDENT:
-			typ = p.curToken
-		default:
-			return nil, tokenError("int | char | boolean | ident", p.curToken.Literal)
-	}
-	
-	for {
-		if !p.peekAndEat(token.IDENT) {
-			return nil, tokenError(token.IDENT, p.peekToken.Literal)
-		}
-
-		if ident, err := p.parseIdentifier(); err == nil {
-			i, ok := ident.(*ast.Identifier)
-
-			if !ok {
-				return nil, errors.New("error parsing declaration: " + ident.String())
-			}
-
-			d := ast.TypeDeclaration{Token: i.Token, Declaration: dec, Type: typ, Name: *i}
-			decs = append(decs, d)
-
-		} else {
-			return nil, err
-		}
-
-		if p.peekAndEat(token.COMMA) {
-			continue
-		} else if p.peekAndEat(token.SEMICOLON) {
-			p.eatToken()
-			break
-		} else {
-			return nil, tokenError(", | ;", p.curToken.Literal)
-		}
-	}
-
-	return decs, nil
-}
-
 // Expression parser functions
 
 func (p *Parser) parseExpression() (ast.Expression, error) {
@@ -135,7 +85,9 @@ func (p *Parser) parseIdentifier() (ast.Expression, error) {
 	}
 }
 
-// Statement parser function
+// ---------------------------------------------------------------------------------
+// Statement parser function -------------------------------------------------------
+// ---------------------------------------------------------------------------------
 
 func (p *Parser) parseStatement() (ast.Statement, error) {
 	switch p.curToken.Type {
@@ -149,9 +101,127 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 		return p.parseWhileStatement()
 	case token.IF:
 		return p.parseIfStatement()
+	case token.STATIC: fallthrough
+	case token.FIELD: fallthrough
+	case token.VAR:
+		return p.parseTypeDeclaration()
 	default:
 		return nil, errors.New("error reading statement, unexpected token: " + p.curToken.Literal)
 	}
+}
+
+// parseType => <type>
+func (p *Parser) parseType() (*token.Token, error) {
+	switch p.curToken.Type {
+		case token.INT: fallthrough
+		case token.CHAR: fallthrough
+		case token.BOOLEAN: fallthrough
+		case token.IDENT:
+			return &p.curToken, nil
+		default:
+			return nil, tokenError("int | char | boolean | ident", p.curToken.Literal)
+	}
+}
+
+// parseTypeDeclaration => var <type> <ident>;
+func (p *Parser) parseTypeDeclaration() (*ast.TypeDeclaration, error) {
+	dec := &ast.TypeDeclaration{Token: p.curToken, Declaration: p.curToken}
+	p.eatToken()
+
+	if t, err := p.parseType(); err == nil {
+		dec.Type = *t
+	} else {
+		return nil, err
+	}
+	
+	for {
+		if !p.peekAndEat(token.IDENT) {
+			return nil, tokenError(token.IDENT, p.peekToken.Literal)
+		}
+
+		if i, err := p.parseIdentifier(); err == nil {
+			ident, ok := i.(*ast.Identifier)
+
+			if !ok {
+				return nil, errors.New("error parsing declaration: " + ident.String())
+			}
+
+			dec.Names = append(dec.Names, ident)
+			
+
+		} else {
+			return nil, err
+		}
+
+		if p.peekAndEat(token.COMMA) {
+			continue
+		} else if p.peekAndEat(token.SEMICOLON) {
+			p.eatToken()
+			break
+		} else {
+			return nil, tokenError(", | ;", p.curToken.Literal)
+		}
+	}
+
+	return dec, nil
+}
+
+
+// parseParameterList => ( <type> <ident> {, <type> <ident>} )
+func (p *Parser) parseParameterList() ([]*ast.Statement, error) {
+	var params []*ast.Statement
+	
+
+
+// parseSubroutineDeclaration => <dec> <returnType> <ident> ( <parameterList> ) <subroutineBody>
+func (p *Parser) parseSubroutineDeclaration() (*ast.SubroutineDeclaration, error) {
+	dec := &ast.SubroutineDeclaration{Token: p.curToken}
+	p.eatToken()
+
+	if t, err := p.parseType(); err == nil {
+		dec.ReturnType = *t
+	} else {
+		return nil, err
+	}
+
+	if !p.peekAndEat(token.IDENT) {
+		return nil, tokenError(token.IDENT, p.peekToken.Literal)
+	}
+
+	if i, err := p.parseIdentifier(); err == nil {
+		if ident, ok := i.(*ast.Identifier); ok {
+			dec.Name = *ident
+		} else {
+			return nil, errors.New("error parsing declaration: " + ident.String())
+		}
+	}
+
+	if !p.peekAndEat(token.LPAREN) {
+		return nil, tokenError("(", p.peekToken.Literal)
+	}
+
+	if p.peekAndEat(token.RPAREN) {
+		dec.Parameters = nil
+	} else {
+		if params, err := p.parseParameterList(); err == nil {
+			dec.Parameters = params
+		} else {
+			return nil, err
+		}
+	}
+
+	if !p.peekAndEat(token.RPAREN) {
+		return nil, tokenError(")", p.peekToken.Literal)
+	}
+
+	if body, err := p.parseSubroutineBody(); err == nil {
+		dec.Body = body
+	} else {
+		return nil, err
+	}
+
+	return dec, nil
+
 }
 
 // parseLetStatement => let <Ident>[<expression>?] = <expression>;

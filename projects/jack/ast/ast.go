@@ -12,20 +12,6 @@ type Node interface {
 	String() string
 }
 
-type TypeDeclaration struct {
-	Token token.Token
-	Declaration token.Token
-	Type token.Token
-	Name Identifier
-}
-
-func (td *TypeDeclaration) TokenLiteral() string {
-	return td.TokenLiteral()
-}
-
-func (td *TypeDeclaration) String() string {
-	return fmt.Sprintf("%s %s %s;", td.TokenLiteral(), td.Type.Literal, td.Name.String())
-}
 
 // expressions -----------------------------------------------------------------
 type Expression interface {
@@ -82,6 +68,65 @@ func (il *IntLiteral) Expression() { }
 type Statement interface {
 	Node
 	Statement()
+}
+
+type TypeDeclaration struct {
+	Token token.Token
+	Declaration token.Token
+	Type token.Token
+	Names []*Identifier
+}
+
+func (td *TypeDeclaration) Statement() {}
+func (td *TypeDeclaration) TokenLiteral() string {
+	return td.Token.Literal
+}
+
+func (td *TypeDeclaration) String() string {
+	var sb strings.Builder
+	sb.WriteString(td.Declaration.Literal)
+	sb.WriteString(" ")
+	sb.WriteString(td.Type.Literal)
+	sb.WriteString(" ")
+	for i, name := range td.Names {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(name.String())
+	}
+	sb.WriteString(";")
+	return sb.String()
+}
+
+type SubroutineDeclaration struct {
+	Token token.Token
+	Decelration token.Token
+	ReturnType token.Token
+	Name Identifier
+	Parameters []*Statement
+	Body []*Statement
+}
+
+func (sd *SubroutineDeclaration) Statement() {}
+func (sd *SubroutineDeclaration) TokenLiteral() string {
+	return sd.Token.Literal
+}
+
+func (sd *SubroutineDeclaration) String() string {
+	var sb strings.Builder
+	sb.WriteString(sd.Decelration.Literal)
+	sb.WriteString(" ")
+	sb.WriteString(sd.ReturnType.Literal)
+	sb.WriteString(" ")
+	sb.WriteString(sd.Name.String())
+	sb.WriteString("(")
+	for i, param := range sd.Parameters {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString((*param).String())
+	}
+
 }
 
 // LetStatement is used when assigning vars

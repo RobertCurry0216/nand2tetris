@@ -14,19 +14,15 @@ func assert(t *testing.T, n string, a, b interface{}) {
 }
 
 func TestParseTypeDecelration(t *testing.T) {
-	type dec struct {
-		expDec string
-		expType string
-		expIdent string
-	}
-
 	tests := []struct {
 		input string
-		expDecs []dec
+		expDec string
+		expType string
+		expIdent []string
 	}{
-		{"var int x;", []dec{{"var", "int", "x"}}},
-		{"static boolean x, y, z;", []dec{{"static", "boolean", "x"}, {"static", "boolean", "y"}, {"static", "boolean", "z"}}},
-		{"field char a;", []dec{{"field", "char", "a"}}},
+		{"var int x;", "var", "int", []string{"x"}},
+		{"static boolean x, y, z;", "static", "boolean", []string{"x", "y", "z"}},
+		{"field char a;", "field", "char", []string{"a"}},
 	}
 
 	for _, test := range tests {
@@ -39,12 +35,13 @@ func TestParseTypeDecelration(t *testing.T) {
 			t.Fatalf(err.Error())
 		}
 
-		assert(t, "TypeDecelration", len(test.expDecs), len(actual))
 
-		for i, d := range actual {	
-			assert(t, "TypeDecelration", test.expDecs[i].expDec, d.Declaration.Literal)
-			assert(t, "TypeDecelration", test.expDecs[i].expType, d.Type.Literal)
-			assert(t, "TypeDecelration", test.expDecs[i].expIdent, d.Name.Name)
+		assert(t, "TypeDeclaration", test.expDec, actual.Declaration.Literal)
+		assert(t, "TypeDeclaration", test.expType, actual.Type.Literal)
+		assert(t, "TypeDecelration", len(test.expIdent), len(actual.Names))
+
+		for i, name := range actual.Names {	
+			assert(t, "TypeDecelration", test.expIdent[i], name.TokenLiteral())
 		}
 	}
 }
