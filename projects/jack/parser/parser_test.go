@@ -277,3 +277,33 @@ func TestParseSubroutineDeclaration(t *testing.T) {
 	assert(t, n, 2, len(actual.Parameters))
 	assert(t, n, 3, len(actual.Body))
 }
+
+
+func TestParseClassDeclaration(t *testing.T) {
+	test := `
+		class Vector {
+			field int x, y;
+
+			constructor Vector new(int _x, int _y) {
+				let x = _x;
+				let y = _y;
+				return this;
+			}
+		}
+	`
+
+	lexer := lexer.New(test)
+	parser := New(lexer)
+
+	actual, err := parser.parseClassDeclaration()
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	n := "ClassDeclaration"
+
+	assert(t, n, token.Type(token.CLASS), actual.Token.Type)
+	assert(t, n, "Vector", actual.Name.String())
+	assert(t, n, 2, len(actual.Body))
+}

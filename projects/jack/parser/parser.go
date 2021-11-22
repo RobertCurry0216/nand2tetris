@@ -253,7 +253,32 @@ func (p *Parser) parseSubroutineDeclaration() (*ast.SubroutineDeclaration, error
 	}
 
 	return dec, nil
+}
 
+// parseClassDeclaration => class <name> { <statements> }
+func (p *Parser) parseClassDeclaration() (*ast.ClassDeclaration, error) {
+	dec := &ast.ClassDeclaration{Token: p.curToken}
+
+	if !p.peekAndEat(token.IDENT) {
+		return nil, tokenError(token.IDENT, p.peekToken.Literal)
+	}
+
+	if i, err := p.parseIdentifier(); err == nil {
+		if ident, ok := i.(*ast.Identifier); ok {
+			dec.Name = *ident
+		} else {
+			return nil, errors.New("error parsing class declaration: " + ident.String())
+		}
+	}
+	p.eatToken()
+
+	if body, err := p.parseCodeBlock(); err == nil {
+		dec.Body = body
+	} else {
+		return nil, err
+	}
+
+	return dec, nil
 }
 
 // parseLetStatement => let <Ident>[<expression>?] = <expression>;

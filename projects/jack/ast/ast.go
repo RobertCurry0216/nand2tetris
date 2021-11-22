@@ -156,6 +156,35 @@ func (sd *SubroutineDeclaration) String() string {
 	return sb.String()
 }
 
+type ClassDeclaration struct {
+	Token token.Token
+	Name Identifier
+	Body []Statement
+}
+
+func (cd *ClassDeclaration) Statement(){}
+func (cd *ClassDeclaration) TokenLiteral() string { 
+	return cd.Token.Literal
+}
+
+func (cd *ClassDeclaration) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(cd.TokenLiteral())
+	sb.WriteString(" ")
+	sb.WriteString(cd.Name.String())
+	sb.WriteString(" {\n")
+
+	for _, stmt := range cd.Body {
+		sb.WriteString(stmt.String())
+		sb.WriteString("\n")
+	}
+
+	sb.WriteString("}")
+
+	return sb.String()
+}	
+
 // LetStatement is used when assigning vars
 type LetStatement struct {
 	Token token.Token
