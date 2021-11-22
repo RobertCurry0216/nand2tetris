@@ -85,11 +85,19 @@ func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
 
 		case token.IDENT:
 			switch p.peekToken.Type {
-			case token.DOT:
+			case token.DOT: fallthrough
+			case token.LPAREN:
 				if exp.Term, err = p.parseSubroutineCall(); err != nil {
 					return nil, err
 				}
-				
+			case token.LBRACE:
+				if exp.Term, err = p.parseIndexIdentifier(); err != nil {
+					return nil, err
+				}
+			default:
+				if exp.Term, err = p.parseIdentifier(); err != nil {
+					return nil, err
+				}			
 			}
 
 		case token.TRUE: fallthrough
@@ -131,6 +139,7 @@ func (p *Parser) expectOp() bool {
 	p.expect(token.SLASH) ||
 	p.expect(token.AND) ||
 	p.expect(token.OR) ||
+	p.expect(token.NOT) ||
 	p.expect(token.GT) ||
 	p.expect(token.LT) ||
 	p.expect(token.EQ) {
