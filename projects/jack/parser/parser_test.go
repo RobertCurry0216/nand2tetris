@@ -10,7 +10,7 @@ import (
 
 func assert(t *testing.T, n string, a, b interface{}) {
 	if a != b {
-		t.Fatalf("%s : expected %v <%T>, got %v <%T>", n, a, a, b, b)
+		t.Fatalf("%s : expected: %v <%T>   got: %v <%T>", n, a, a, b, b)
 	}
 }
 
@@ -70,7 +70,7 @@ func TestParseLetStatement(t *testing.T) {
 		}
 
 
-		ident, ok := actual.Identifier.(*ast.Identifier)
+		ident, ok := actual.Name.(*ast.Identifier)
 		if !ok {
 			t.Fatalf("expected *ast.Identifier, got %T", ident)
 		}
@@ -103,7 +103,7 @@ func TestParseIndexedLetStatement(t *testing.T) {
 		}
 
 
-		ident, ok := actual.Identifier.(*ast.IndexIdentifier)
+		ident, ok := actual.Name.(*ast.IndexIdentifier)
 		if !ok {
 			t.Fatalf("LetIndexedStatement : expected *ast.IndexIdentifier, got %T", ident)
 		}

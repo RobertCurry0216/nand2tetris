@@ -14,7 +14,7 @@ type Node interface {
 
 
 // expressions -----------------------------------------------------------------
-type Expression interface {
+type ExpressionNode interface {
 	Node
 	Expression()
 }
@@ -33,7 +33,7 @@ func (i *Identifier) Expression() { }
 type IndexIdentifier struct {
 	Token token.Token
 	Name string
-	Index Expression
+	Index ExpressionNode
 }
 
 func (ii *IndexIdentifier) TokenLiteral() string { return ii.Token.Literal }
@@ -78,7 +78,7 @@ type SubroutineCall struct {
 	Token token.Token
 	Class *Identifier
 	Name *Identifier
-	Arguments []Expression
+	Arguments []ExpressionNode
 }
 
 func (sc *SubroutineCall) TokenLiteral() string { return sc.Token.Literal }
@@ -108,7 +108,7 @@ func (sc *SubroutineCall) String() string {
 type UnaryExpression struct {
 	Token token.Token
 	Prefix token.Token
-	Term Expression
+	Term ExpressionNode
 }
 
 func (ue *UnaryExpression) TokenLiteral() string { return ue.Token.Literal }
@@ -119,7 +119,7 @@ func (ue *UnaryExpression) String() string {
 
 type ParenExpression struct {
 	Token token.Token
-	Term Expression
+	Term ExpressionNode
 }
 
 func (pe *ParenExpression) TokenLiteral() string { return pe.Token.Literal }
@@ -127,9 +127,11 @@ func (pe *ParenExpression) Expression() {}
 func (pe *ParenExpression) String() string { return "(" + pe.Term.String() + ")"}	
 
 
+// ----------------------------------------------------------------------------
 // statements -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-type Statement interface {
+type StatementNode interface {
 	Node
 	Statement()
 }
@@ -185,9 +187,9 @@ type SubroutineDeclaration struct {
 	Token token.Token
 	Decelration token.Token
 	ReturnType token.Token
-	Name Identifier
+	Name *Identifier
 	Parameters []*ParamDeclaration
-	Body []Statement
+	Body []StatementNode
 }
 
 func (sd *SubroutineDeclaration) Statement() {}
@@ -222,8 +224,8 @@ func (sd *SubroutineDeclaration) String() string {
 
 type ClassDeclaration struct {
 	Token token.Token
-	Name Identifier
-	Body []Statement
+	Name *Identifier
+	Body []StatementNode
 }
 
 func (cd *ClassDeclaration) Statement(){}
@@ -252,8 +254,8 @@ func (cd *ClassDeclaration) String() string {
 // LetStatement is used when assigning vars
 type LetStatement struct {
 	Token token.Token
-	Identifier Expression
-	Value Expression
+	Name ExpressionNode
+	Value ExpressionNode
 }
 
 func (ls *LetStatement) Statement() {}
@@ -266,7 +268,7 @@ func (ls *LetStatement) String() string {
 	var sb strings.Builder
 	sb.WriteString(ls.Token.Literal)
 	sb.WriteString(" ")
-	sb.WriteString(ls.Identifier.String())
+	sb.WriteString(ls.Name.String())
 	sb.WriteString(" = ")
 	sb.WriteString(ls.Value.String())
 	sb.WriteString(";")
@@ -277,7 +279,7 @@ func (ls *LetStatement) String() string {
 // ReturnStatement => return <exp?>;
 type ReturnStatement struct {
 	Token token.Token
-	Value Expression
+	Value ExpressionNode
 }
 
 func (rs *ReturnStatement) Statement(){}
@@ -296,7 +298,7 @@ func (rs *ReturnStatement) String() string {
 // DoStatement => do <expression>;
 type DoStatement struct {
 	Token token.Token
-	Expression Expression
+	Expression ExpressionNode
 }
 
 func (ds *DoStatement) Statement(){}
@@ -310,8 +312,8 @@ func (ds *DoStatement) String() string {
 // WhileStatement => while (<expression>) {<statements>}
 type WhileStatement struct {
 	Token token.Token
-	Expression Expression
-	Statements []Statement
+	Expression ExpressionNode
+	Statements []StatementNode
 }
 
 func (ws *WhileStatement) Statement(){}
@@ -337,9 +339,9 @@ func (ws *WhileStatement) String() string {
 // IfStatement => if (<exp>) {<statements>} ?else {<statements>}
 type IfStatement struct {
 	Token token.Token
-	Expression Expression
-	Statements []Statement
-	ElseStatements []Statement
+	Expression ExpressionNode
+	Statements []StatementNode
+	ElseStatements []StatementNode
 }
 
 func (is *IfStatement) Statement() {}

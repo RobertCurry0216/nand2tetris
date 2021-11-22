@@ -28,7 +28,11 @@ func (p *Parser) eatToken() {
 	p.peekToken = p.lexer.NextToken()
 }
 
-func (p *Parser) checkAndEat(token token.Type) bool {
+func (p *Parser) expect(token token.Type) bool {
+	return p.curToken.Type == token
+}
+
+func (p *Parser) expectAndEat(token token.Type) bool {
 	b := p.curToken.Type == token
 	if b {	
 		p.eatToken()
@@ -50,14 +54,14 @@ func (p *Parser) peekAndEat(token token.Type) bool {
 
 // error helpers
 func tokenError(exp, got string) error {
-	return errors.New(fmt.Sprintf("unexpected token, expected %s, got %s", exp, got))
+	return errors.New(fmt.Sprintf("unexpected token, expected: %s   got %s", exp, got))
 }
 
 // ---------------------------------------------------------------------------------
 // Expression parser function ------------------------------------------------------
 // ---------------------------------------------------------------------------------
 
-func (p *Parser) parseExpression() (ast.Expression, error) {
+func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
 	// TODO: parse expressions
 	stmt := &ast.IntLiteral{Token: p.curToken}
 
@@ -130,7 +134,7 @@ func (p *Parser) parseKeywordConstant() (*ast.KeywordConstant, error) {
 // Statement parser function -------------------------------------------------------
 // ---------------------------------------------------------------------------------
 
-func (p *Parser) parseStatement() (ast.Statement, error) {
+func (p *Parser) parseStatement() (ast.StatementNode, error) {
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
@@ -158,33 +162,34 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 }
 
 // parseType => <type>
-func (p *Parser) parseType() (*token.Token, error) {
+func (p *Parser) parseType() (token.Token, error) {
 	switch p.curToken.Type {
 		case token.INT: fallthrough
 		case token.CHAR: fallthrough
 		case token.BOOLEAN: fallthrough
 		case token.VOID: fallthrough
 		case token.IDENT:
-			return &p.curToken, nil
+			t := p.curToken
+			p.eatToken()
+			return t, nil
 		default:
-			return nil, tokenError("int | char | boolean | ident | void", p.curToken.Literal)
+			return token.Token{}, tokenError("int | char | boolean | ident | void", p.curToken.Literal)
 	}
 }
 
 // parseTypeDeclaration => var <type> <ident>;
 func (p *Parser) parseTypeDeclaration() (*ast.TypeDeclaration, error) {
+	var err error
 	dec := &ast.TypeDeclaration{Token: p.curToken, Declaration: p.curToken}
 	p.eatToken()
 
-	if t, err := p.parseType(); err == nil {
-		dec.Type = *t
-	} else {
+	if dec.Type, err = p.parseType(); err != nil {
 		return nil, err
 	}
 	
 	for {
-		if !p.peekAndEat(token.IDENT) {
-			return nil, tokenError(token.IDENT, p.peekToken.Literal)
+		if !p.expect(token.IDENT) {
+			return nil, tokenError(token.IDENT, p.curToken.Literal)
 		}
 
 		if i, err := p.parseIdentifier(); err == nil {
@@ -193,13 +198,12 @@ func (p *Parser) parseTypeDeclaration() (*ast.TypeDeclaration, error) {
 			return nil, err
 		}
 
-		if p.peekAndEat(token.COMMA) {
+		if p.expectAndEat(token.COMMA) {
 			continue
-		} else if p.peekAndEat(token.SEMICOLON) {
-			p.eatToken()
+		} else if p.expectAndEat(token.SEMICOLON) {
 			break
 		} else {
-			return nil, tokenError(", | ;", p.curToken.Literal)
+			return nil, tokenError(", or ;", p.curToken.Literal)
 		}
 	}
 
@@ -209,42 +213,34 @@ func (p *Parser) parseTypeDeclaration() (*ast.TypeDeclaration, error) {
 
 // parseParameterList => ( <type> <ident> {, <type> <ident>} )
 func (p *Parser) parseParameterList() ([]*ast.ParamDeclaration, error) {
+	var err error
 	var params []*ast.ParamDeclaration
 
-	if !p.checkAndEat(token.LPAREN) {
+	if !p.expectAndEat(token.LPAREN) {
 		return nil, tokenError("(", p.peekToken.Literal)
 	}
 
 	for p.curToken.Type != token.RPAREN {
 		param := &ast.ParamDeclaration{Token: p.curToken}
 
-		if t, err := p.parseType(); err == nil {
-			param.Type = *t
-			p.eatToken()
-		} else {
+		if param.Type, err = p.parseType(); err != nil {
 			return nil, err
 		}
 
-		if i, err := p.parseIdentifier(); err == nil {
-			param.Name = i
-		} else {
+		if param.Name, err = p.parseIdentifier(); err != nil {
 			return nil, tokenError(token.IDENT, p.curToken.Literal)
 		}
 
 		params = append(params, param)
 
-		if p.peekAndEat(token.RPAREN) {
+		if p.expectAndEat(token.RPAREN) {
 			break
 		}
 
-		if p.peekAndEat(token.COMMA) {
-			p.eatToken()
-		} else {
+		if !p.expectAndEat(token.COMMA) {
 			return nil, tokenError(token.COMMA, p.curToken.Literal)
 		}
 	}
-
-	p.eatToken()
 
 	return params, nil
 }
@@ -252,34 +248,28 @@ func (p *Parser) parseParameterList() ([]*ast.ParamDeclaration, error) {
 
 // parseSubroutineDeclaration => <dec> <returnType> <ident> ( <parameterList> ) <subroutineBody>
 func (p *Parser) parseSubroutineDeclaration() (*ast.SubroutineDeclaration, error) {
+	var err error
 	dec := &ast.SubroutineDeclaration{Token: p.curToken, Decelration: p.curToken}
 	p.eatToken()
 
-	if t, err := p.parseType(); err == nil {
-		dec.ReturnType = *t
-	} else {
+	if dec.ReturnType, err = p.parseType(); err != nil {
 		return nil, err
 	}
 
-	if !p.peekAndEat(token.IDENT) {
-		return nil, tokenError(token.IDENT, p.peekToken.Literal)
+	if !p.expect(token.IDENT) {
+		return nil, tokenError(token.IDENT, p.curToken.Literal)
 	}
 
-	if i, err := p.parseIdentifier(); err == nil {
-		dec.Name = *i
+	if dec.Name, err = p.parseIdentifier(); err != nil {
+		return nil, err
 	}
-	p.eatToken()
 
-	if params, err := p.parseParameterList(); err == nil {
-		dec.Parameters = params
-	} else {
+	if dec.Parameters, err = p.parseParameterList(); err != nil {
 		return nil, err
 	}
 
 
-	if body, err := p.parseCodeBlock(); err == nil {
-		dec.Body = body
-	} else {
+	if dec.Body, err = p.parseCodeBlock(); err != nil {
 		return nil, err
 	}
 
@@ -288,22 +278,18 @@ func (p *Parser) parseSubroutineDeclaration() (*ast.SubroutineDeclaration, error
 
 // parseClassDeclaration => class <name> { <statements> }
 func (p *Parser) parseClassDeclaration() (*ast.ClassDeclaration, error) {
+	var err error
 	dec := &ast.ClassDeclaration{Token: p.curToken}
 
 	if !p.peekAndEat(token.IDENT) {
 		return nil, tokenError(token.IDENT, p.peekToken.Literal)
 	}
 
-	if i, err := p.parseIdentifier(); err == nil {
-		dec.Name = *i
-	} else {
+	if dec.Name , err = p.parseIdentifier(); err != nil {
 		return nil, err
 	}
-	p.eatToken()
 
-	if body, err := p.parseCodeBlock(); err == nil {
-		dec.Body = body
-	} else {
+	if dec.Body, err = p.parseCodeBlock(); err != nil {
 		return nil, err
 	}
 
@@ -320,24 +306,22 @@ func (p *Parser) parseLetStatement() (*ast.LetStatement, error) {
 
 	if p.expectPeek(token.LBRACKET) {
 		if ident, err := p.parseIndexIdentifier(); err == nil {
-			stmt.Identifier = ident
+			stmt.Name = ident
 		} else {
 			return nil, err
 		}
 	} else {
 		if ident, err := p.parseIdentifier(); err == nil {
-			stmt.Identifier = ident
+			stmt.Name = ident
 		} else {
 			return nil, err
 		}
 	}
 
 
-	if !p.peekAndEat(token.EQ) {
+	if !p.expectAndEat(token.EQ) {
 		return nil, tokenError(token.EQ, p.peekToken.Literal)
 	}
-
-	p.eatToken()
 
 	if val, err := p.parseExpression(); err == nil {
 		stmt.Value = val
@@ -345,15 +329,12 @@ func (p *Parser) parseLetStatement() (*ast.LetStatement, error) {
 		return nil, err
 	}
 
-	if p.curToken.Type != token.SEMICOLON {
+	if !p.expectAndEat(token.SEMICOLON) {
 		return nil, tokenError(token.SEMICOLON, p.peekToken.Literal)
 	}
 
-	p.eatToken()
-
 	return stmt, nil
 }
-
 
 // parseReturnStatement => return <expression>;
 func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
@@ -372,11 +353,9 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 		return nil, err
 	}
 
-	if p.curToken.Type != token.SEMICOLON {
+	if !p.expectAndEat(token.SEMICOLON) {
 		return nil, tokenError(token.SEMICOLON, p.curToken.Literal)
 	}
-
-	p.eatToken()
 
 	return stmt, nil
 }
@@ -403,10 +382,10 @@ func (p *Parser) parseDoStatement() (*ast.DoStatement, error) {
 }
 
 // parseCodeBlock => {<statements>}
-func (p *Parser) parseCodeBlock() ([]ast.Statement, error) {
-	stmts := []ast.Statement{}
+func (p *Parser) parseCodeBlock() ([]ast.StatementNode, error) {
+	stmts := []ast.StatementNode{}
 
-	if !p.checkAndEat(token.LBRACE)  {
+	if !p.expectAndEat(token.LBRACE)  {
 		return nil, tokenError(token.LBRACE, p.curToken.Literal)
 	}
 
@@ -418,7 +397,7 @@ func (p *Parser) parseCodeBlock() ([]ast.Statement, error) {
 		}
 	}
 
-	if !p.checkAndEat(token.RBRACE)  {
+	if !p.expectAndEat(token.RBRACE)  {
 		return nil, tokenError(token.LBRACE, p.curToken.Literal)
 	}
 
@@ -428,6 +407,7 @@ func (p *Parser) parseCodeBlock() ([]ast.Statement, error) {
 
 // parseWhileStatement => while (<exp>) {<statements>}
 func (p *Parser) parseWhileStatement() (*ast.WhileStatement, error) {
+	var err error
 	stmt := &ast.WhileStatement{Token: p.curToken}
 
 	if !p.peekAndEat(token.LPAREN) {
@@ -435,19 +415,15 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStatement, error) {
 	}
 	p.eatToken()
 
-	if exp, err := p.parseExpression(); err == nil {
-		stmt.Expression = exp
-	} else {
+	if stmt.Expression, err = p.parseExpression(); err != nil {
 		return nil, err
 	}
 
-	if !p.checkAndEat(token.RPAREN) {
+	if !p.expectAndEat(token.RPAREN) {
 		return nil, tokenError(token.RPAREN, p.curToken.Literal)
 	}
 	
-	if stmts, err := p.parseCodeBlock(); err == nil {
-		stmt.Statements = stmts
-	} else {
+	if stmt.Statements, err = p.parseCodeBlock(); err != nil {
 		return nil, err
 	}
 
@@ -470,7 +446,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStatement, error) {
 		return nil, err
 	}
 
-	if !p.checkAndEat(token.RPAREN) {
+	if !p.expectAndEat(token.RPAREN) {
 		return nil, tokenError(token.RPAREN, p.curToken.Literal)
 	}
 	
@@ -480,7 +456,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStatement, error) {
 		return nil, err
 	}
 
-	if p.checkAndEat(token.ELSE) {
+	if p.expectAndEat(token.ELSE) {
 		if stmts, err := p.parseCodeBlock(); err == nil {
 			stmt.ElseStatements = stmts
 		} else {
