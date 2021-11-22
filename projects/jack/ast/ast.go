@@ -19,6 +19,30 @@ type ExpressionNode interface {
 	Expression()
 }
 
+// Expression is a tree like structure to denote any combination of expressions
+type Expression struct {
+	Term ExpressionNode
+	Tail ExpressionNode
+	Op *token.Token
+}
+
+func (e *Expression) TokenLiteral() string { return e.Term.TokenLiteral() }
+func (e *Expression) Expression(){}
+func (e *Expression) String() string {
+	var sb strings.Builder
+
+	if e.Op != nil {
+		sb.WriteString(e.Op.Literal)
+	}
+	sb.WriteString(e.Term.String())
+
+	if e.Tail != nil {
+		sb.WriteString(e.Tail.String())
+	}
+
+	return sb.String()
+}
+
 // Identifier denotes the name of a var or function
 type Identifier struct {
 	Token token.Token

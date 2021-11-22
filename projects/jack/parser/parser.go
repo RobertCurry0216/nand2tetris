@@ -62,12 +62,81 @@ func tokenError(exp, got string) error {
 // ---------------------------------------------------------------------------------
 
 func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
-	// TODO: parse expressions
-	stmt := &ast.IntLiteral{Token: p.curToken}
+	var err error
+	var exp ast.Expression
 
-	p.eatToken()
+	// parse op
+	if p.expectOp() {
+		exp.Op = &p.curToken
+		p.eatToken()
+	}
 
-	return stmt, nil
+	// parse term
+	switch p.curToken.Type {
+		case token.INT:
+			if exp.Term, err = p.parseIntLiteral(); err != nil {
+				return nil, err
+			}
+
+		case token.STRING:
+			if exp.Term, err = p.parseStringLiteral(); err != nil {
+				return nil, err
+			}
+
+		case token.IDENT:
+			switch p.peekToken.Type {
+			case token.DOT:
+				if exp.Term, err = p.parseSubroutineCall(); err != nil {
+					return nil, err
+				}
+				
+			}
+
+		case token.TRUE: fallthrough
+		case token.FALSE: fallthrough
+		case token.NULL: fallthrough
+		case token.THIS:
+			if exp.Term, err = p.parseKeywordConstant(); err != nil {
+				return nil, err
+			}
+
+		case token.LPAREN:
+			p.eatToken()
+			if exp.Term, err = p.parseExpression(); err != nil {
+				return nil, err
+			}
+			if !p.expectAndEat(token.RPAREN) {
+				return nil, tokenError(token.RPAREN, p.curToken.Literal)
+			}
+
+		default:
+			return nil, errors.New("error parsing expression")
+	}
+
+	// parse tail
+	if p.expectOp() {
+		if exp.Tail, err = p.parseExpression(); err != nil {
+			return nil, err
+		}
+	}
+
+	return &exp, nil
+}
+
+func (p *Parser) expectOp() bool {
+	if 
+	p.expect(token.PLUS) ||
+	p.expect(token.MINUS) ||
+	p.expect(token.ASTERISK) ||
+	p.expect(token.SLASH) ||
+	p.expect(token.AND) ||
+	p.expect(token.OR) ||
+	p.expect(token.GT) ||
+	p.expect(token.LT) ||
+	p.expect(token.EQ) {
+		return true
+	}
+	return false
 }
 
 func (p *Parser) parseIdentifier() (*ast.Identifier, error) {
