@@ -55,12 +55,76 @@ func (sl *StringLiteral) Expression() { }
 // IntLiteral denotes a number value written in the code
 type IntLiteral struct {
 	Token token.Token
-	Value int64
+	Value int
 }
 
 func (il *IntLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntLiteral) String() string { return il.Token.Literal }
 func (il *IntLiteral) Expression() { }
+
+
+// KeywordConstant => true | false | null | this
+type KeywordConstant struct {
+	Token token.Token
+	Value string
+}
+
+func (kc *KeywordConstant) TokenLiteral() string { return kc.Token.Literal }
+func (kc *KeywordConstant) Expression(){}
+func (kc *KeywordConstant) String() string { return kc.Value }
+
+// SubroutinCall => <class name?>.<sub name>(<expression list>)
+type SubroutineCall struct {
+	Token token.Token
+	Class *Identifier
+	Name *Identifier
+	Arguments []Expression
+}
+
+func (sc *SubroutineCall) TokenLiteral() string { return sc.Token.Literal }
+func (sc *SubroutineCall) Expression(){}
+func (sc *SubroutineCall) String() string {
+	var sb strings.Builder
+
+	if sc.Class != nil {
+		sb.WriteString(sc.Class.String())
+		sb.WriteString(".")
+	}
+
+	sb.WriteString(sc.Name.String())
+
+	sb.WriteString("(")
+	for i, arg := range sc.Arguments {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(arg.String())
+	}
+	sb.WriteString(")")
+
+	return sb.String()
+}
+
+type UnaryExpression struct {
+	Token token.Token
+	Prefix token.Token
+	Term Expression
+}
+
+func (ue *UnaryExpression) TokenLiteral() string { return ue.Token.Literal }
+func (ue *UnaryExpression) Expression() {}
+func (ue *UnaryExpression) String() string {
+	return ue.Prefix.Literal + ue.Term.String()
+}
+
+type ParenExpression struct {
+	Token token.Token
+	Term Expression
+}
+
+func (pe *ParenExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *ParenExpression) Expression() {}
+func (pe *ParenExpression) String() string { return "(" + pe.Term.String() + ")"}	
 
 
 // statements -----------------------------------------------------------------

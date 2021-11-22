@@ -6,6 +6,7 @@ import (
 	"jack/ast"
 	"jack/lexer"
 	"jack/token"
+	"strconv"
 )
 
 type Parser struct {
@@ -52,7 +53,9 @@ func tokenError(exp, got string) error {
 	return errors.New(fmt.Sprintf("unexpected token, expected %s, got %s", exp, got))
 }
 
-// Expression parser functions
+// ---------------------------------------------------------------------------------
+// Expression parser function ------------------------------------------------------
+// ---------------------------------------------------------------------------------
 
 func (p *Parser) parseExpression() (ast.Expression, error) {
 	// TODO: parse expressions
@@ -63,9 +66,14 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 	return stmt, nil
 }
 
-func (p *Parser) parseIdentifier() (ast.Expression, error) {
-	if p.expectPeek(token.LBRACKET) {
-		ii := &ast.IndexIdentifier{Token: p.curToken, Name: p.curToken.Literal}
+func (p *Parser) parseIdentifier() (*ast.Identifier, error) {
+	i := &ast.Identifier{Token: p.curToken, Name: p.curToken.Literal}
+	p.eatToken()
+	return i, nil
+}
+
+func (p *Parser) parseIndexIdentifier() (*ast.IndexIdentifier, error) {
+	ii := &ast.IndexIdentifier{Token: p.curToken, Name: p.curToken.Literal}
 
 		p.eatToken()
 		p.eatToken()
@@ -78,11 +86,44 @@ func (p *Parser) parseIdentifier() (ast.Expression, error) {
 
 		ii.Index = index
 
+		p.eatToken()
+
 		return ii, nil
+}
+
+func (p *Parser) parseStringLiteral() (*ast.StringLiteral, error) {
+	sl := &ast.StringLiteral{Token: p.curToken}
+	sl.Value = p.curToken.Literal
+	p.eatToken()
+
+	return sl, nil
+}
+
+
+func (p *Parser) parseIntLiteral() (*ast.IntLiteral, error) {
+	il := &ast.IntLiteral{Token: p.curToken}
+
+	if i, err := strconv.Atoi(p.curToken.Literal); err == nil {
+		il.Value = i
 	} else {
-		i := &ast.Identifier{Token: p.curToken, Name: p.curToken.Literal}
-		return i, nil
+		return nil, err
+	}	
+	return il, nil
+}
+
+func (p *Parser) parseKeywordConstant() (*ast.KeywordConstant, error) {
+	kw := &ast.KeywordConstant{Token: p.curToken}
+
+	if
+	p.curToken.Type == token.Type(token.TRUE) ||
+	p.curToken.Type == token.Type(token.FALSE) ||
+	p.curToken.Type == token.Type(token.NULL) ||
+	p.curToken.Type == token.Type(token.THIS) {
+		kw.Value = p.curToken.Literal
+	} else {
+		return nil, tokenError("true | false | null | this", p.curToken.Literal)
 	}
+	return kw, nil
 }
 
 // ---------------------------------------------------------------------------------
@@ -109,6 +150,8 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.METHOD: fallthrough
 	case token.CONSTRUCTOR:
 		return p.parseSubroutineDeclaration()
+	case token.CLASS:
+		return p.parseClassDeclaration()
 	default:
 		return nil, errors.New("error reading statement, unexpected token: " + p.curToken.Literal)
 	}
@@ -145,11 +188,7 @@ func (p *Parser) parseTypeDeclaration() (*ast.TypeDeclaration, error) {
 		}
 
 		if i, err := p.parseIdentifier(); err == nil {
-			ident, ok := i.(*ast.Identifier)
-			if !ok {
-				return nil, errors.New("error parsing declaration: " + ident.String())
-			}
-			dec.Names = append(dec.Names, ident)
+			dec.Names = append(dec.Names, i)
 		} else {
 			return nil, err
 		}
@@ -187,11 +226,7 @@ func (p *Parser) parseParameterList() ([]*ast.ParamDeclaration, error) {
 		}
 
 		if i, err := p.parseIdentifier(); err == nil {
-			if ident, ok := i.(*ast.Identifier); ok {
-				param.Name = ident
-			} else {
-				return nil, errors.New(fmt.Sprintf("type error, exp: Identifier, got: %T", i))
-			}
+			param.Name = i
 		} else {
 			return nil, tokenError(token.IDENT, p.curToken.Literal)
 		}
@@ -231,11 +266,7 @@ func (p *Parser) parseSubroutineDeclaration() (*ast.SubroutineDeclaration, error
 	}
 
 	if i, err := p.parseIdentifier(); err == nil {
-		if ident, ok := i.(*ast.Identifier); ok {
-			dec.Name = *ident
-		} else {
-			return nil, errors.New("error parsing declaration: " + ident.String())
-		}
+		dec.Name = *i
 	}
 	p.eatToken()
 
@@ -264,11 +295,9 @@ func (p *Parser) parseClassDeclaration() (*ast.ClassDeclaration, error) {
 	}
 
 	if i, err := p.parseIdentifier(); err == nil {
-		if ident, ok := i.(*ast.Identifier); ok {
-			dec.Name = *ident
-		} else {
-			return nil, errors.New("error parsing class declaration: " + ident.String())
-		}
+		dec.Name = *i
+	} else {
+		return nil, err
 	}
 	p.eatToken()
 
@@ -289,10 +318,18 @@ func (p *Parser) parseLetStatement() (*ast.LetStatement, error) {
 		return nil, tokenError(token.IDENT, p.peekToken.Literal)
 	}
 
-	if ident, err := p.parseIdentifier(); err == nil {
-		stmt.Identifier = ident
+	if p.expectPeek(token.LBRACKET) {
+		if ident, err := p.parseIndexIdentifier(); err == nil {
+			stmt.Identifier = ident
+		} else {
+			return nil, err
+		}
 	} else {
-		return nil, err
+		if ident, err := p.parseIdentifier(); err == nil {
+			stmt.Identifier = ident
+		} else {
+			return nil, err
+		}
 	}
 
 
