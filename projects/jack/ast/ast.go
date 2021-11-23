@@ -23,7 +23,7 @@ type ExpressionNode interface {
 type Expression struct {
 	Term ExpressionNode
 	Tail ExpressionNode
-	Op *token.Token
+	Op token.Token
 }
 
 func (e *Expression) TokenLiteral() string { return e.Term.TokenLiteral() }
@@ -31,14 +31,17 @@ func (e *Expression) Expression(){}
 func (e *Expression) String() string {
 	var sb strings.Builder
 
-	if e.Op != nil {
+	sb.WriteString("(")
+	if e.Op != (token.Token{}) {
 		sb.WriteString(e.Op.Literal)
 	}
 	sb.WriteString(e.Term.String())
 
 	if e.Tail != nil {
+		sb.WriteString(" ")
 		sb.WriteString(e.Tail.String())
 	}
+	sb.WriteString(")")
 
 	return sb.String()
 }

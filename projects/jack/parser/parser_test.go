@@ -307,3 +307,34 @@ func TestParseClassDeclaration(t *testing.T) {
 	assert(t, n, "Vector", actual.Name.String())
 	assert(t, n, 2, len(actual.Body))
 }
+
+
+func TestParseExpression(t *testing.T) {
+	tests := []struct{
+			input string
+			exp string
+		}{
+			{"1 * 2 + 3", "(1 (*2 (+3)))"},
+			{"(4 * 8) - (2 / 3)", "((4 (*8)) (-(2 (/3))))"},
+			{"-1", "(-1)"},
+			{"Vector.norm()", "(Vector.norm())"},
+			{"foo(bar)", "(foo((bar)))"},
+			{"true", "(true)"},
+			{"this", "(this)"},
+			{"~~false", "(~(~false))"},
+			{"-1 + (-3)", "(-1 (+(-3)))"},
+	}
+
+	for _, test := range tests {
+		lexer := lexer.New(test.input)
+		parser := New(lexer)
+
+		actual, err := parser.parseExpression()
+
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		assert(t, "paresExpression", test.exp, actual.String())
+	}
+}

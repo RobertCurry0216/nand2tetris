@@ -67,7 +67,7 @@ func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
 
 	// parse op
 	if p.expectOp() {
-		exp.Op = &p.curToken
+		exp.Op = p.curToken
 		p.eatToken()
 	}
 
@@ -115,6 +115,12 @@ func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
 			}
 			if !p.expectAndEat(token.RPAREN) {
 				return nil, tokenError(token.RPAREN, p.curToken.Literal)
+			}
+
+		case token.NOT: fallthrough
+		case token.MINUS:
+			if exp.Term, err = p.parseExpression(); err != nil {
+				return nil, err
 			}
 
 		default:
@@ -181,7 +187,6 @@ func (p *Parser) parseStringLiteral() (*ast.StringLiteral, error) {
 	return sl, nil
 }
 
-
 func (p *Parser) parseIntLiteral() (*ast.IntLiteral, error) {
 	il := &ast.IntLiteral{Token: p.curToken}
 
@@ -190,6 +195,7 @@ func (p *Parser) parseIntLiteral() (*ast.IntLiteral, error) {
 	} else {
 		return nil, err
 	}	
+	p.eatToken()
 	return il, nil
 }
 
@@ -205,8 +211,58 @@ func (p *Parser) parseKeywordConstant() (*ast.KeywordConstant, error) {
 	} else {
 		return nil, tokenError("true | false | null | this", p.curToken.Literal)
 	}
+	p.eatToken()
 	return kw, nil
 }
+
+func (p *Parser) parseSubroutineCall() (*ast.SubroutineCall, error) {
+	var err error
+	sc := &ast.SubroutineCall{Token: p.curToken}
+
+	// parse class
+	if p.expectPeek(token.DOT) {
+		if sc.Class, err = p.parseIdentifier(); err != nil {
+			return nil, err
+		}
+		p.eatToken()
+	}
+
+	// parse name
+	if sc.Name, err = p.parseIdentifier(); err != nil {
+		return nil, err
+	}
+
+	// parse args
+	if sc.Arguments, err = p.parseArgumentList(); err != nil {
+		return nil, err
+	}
+
+	return sc, nil
+}
+
+func (p *Parser) parseArgumentList() ([]ast.ExpressionNode, error) {
+	var args []ast.ExpressionNode
+
+	if !p.expectAndEat(token.LPAREN) {
+		return nil, tokenError(token.LPAREN, p.curToken.Literal)
+	}
+
+	for p.curToken.Type != token.RPAREN {
+		if exp, err := p.parseExpression(); err != nil {
+			return nil, err
+		} else {
+			args = append(args, exp)
+		}
+
+		p.expectAndEat(token.COMMA)
+
+		if p.expectAndEat(token.RPAREN) {
+			break
+		}
+	}
+	return args, nil
+}
+
 
 // ---------------------------------------------------------------------------------
 // Statement parser function -------------------------------------------------------
