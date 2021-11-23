@@ -256,10 +256,11 @@ func (p *Parser) parseArgumentList() ([]ast.ExpressionNode, error) {
 
 		p.expectAndEat(token.COMMA)
 
-		if p.expectAndEat(token.RPAREN) {
+		if p.expect(token.RPAREN) {
 			break
 		}
 	}
+	p.eatToken()
 	return args, nil
 }
 

@@ -54,9 +54,9 @@ func TestParseLetStatement(t *testing.T) {
 		expName string
 		expValue interface{}
 	}{
-		{"let x = 8;", "x", "8"},
-		{"let y = true;", "y", "true"},
-		{"let foo = bar;", "foo", "bar"},
+		{"let foo = bar();", "foo", "(bar())"},
+		{"let x = 8;", "x", "(8)"},
+		{"let y = ~true;", "y", "(~true)"},
 	}
 
 	for _, test := range tests {
@@ -88,8 +88,8 @@ func TestParseIndexedLetStatement(t *testing.T) {
 		expIndex string
 		expValue interface{}
 	}{
-		{"let x[0] = 8;", "x", "0", "8"},
-		{"let y[foo] = true;", "y", "foo", "true"},
+		{"let x[0] = 8;", "x", "(0)", "(8)"},
+		{"let y[foo] = true;", "y", "(foo)", "(true)"},
 	}
 
 	for _, test := range tests {
@@ -121,7 +121,7 @@ func TestParseReturnStatement(t *testing.T) {
 		expValue interface{}
 	}{
 		{"return;", nil},
-		{"return 3;", "3"},
+		{"return 3;", "(3)"},
 	}
 
 	for _, test := range tests {
@@ -148,7 +148,7 @@ func TestParseDoStatement(t *testing.T) {
 		input string
 		expValue interface{}
 	}{
-		{"do foobar;", "foobar"},
+		{"do foobar(1, 2);", "(foobar((1), (2)))"},
 	}
 
 	for _, test := range tests {
@@ -178,10 +178,10 @@ func TestParseWhileStatement(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	assert(t, "WhileStatement", actual.Expression.String(), "true")
-	assert(t, "WhileStatement", len(actual.Statements), 2)
-	assert(t, "WhileStatement", actual.Statements[0].String(), "let x = 3;")
-	assert(t, "WhileStatement", actual.Statements[1].String(), "do foobar;")
+	assert(t, "WhileStatement", "(true)", actual.Expression.String())
+	assert(t, "WhileStatement", 2, len(actual.Statements))
+	assert(t, "WhileStatement", "let x = (3);", actual.Statements[0].String())
+	assert(t, "WhileStatement", "do (foobar);", actual.Statements[1].String())
 }
 
 
@@ -203,12 +203,12 @@ func TestParseIfStatement(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	assert(t, "IfStatement", actual.Expression.String(), "bool")
-	assert(t, "IfStatement", len(actual.Statements), 2)
-	assert(t, "IfStatement", len(actual.ElseStatements), 1)
-	assert(t, "IfStatement", actual.Statements[0].String(), "let x = 4;")
-	assert(t, "IfStatement", actual.Statements[1].String(), "do foobar;")
-	assert(t, "IfStatement", actual.ElseStatements[0].String(), "let y = 4;")
+	assert(t, "IfStatement", "(bool)", actual.Expression.String())
+	assert(t, "IfStatement", 2, len(actual.Statements))
+	assert(t, "IfStatement", 1, len(actual.ElseStatements))
+	assert(t, "IfStatement", "let x = (4);", actual.Statements[0].String())
+	assert(t, "IfStatement", "do (foobar);", actual.Statements[1].String())
+	assert(t, "IfStatement", "let y = (4);", actual.ElseStatements[0].String())
 }
 
 func TestParseParamList(t *testing.T) {
