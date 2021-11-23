@@ -25,13 +25,20 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) - 1 {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 	ok := false
 
-	l.skipWhitespace()
-
 	for !ok {
+		l.skipWhitespace()
 		switch l.ch {
 		case '{':
 			ok = true
@@ -70,9 +77,14 @@ func (l *Lexer) NextToken() token.Token {
 			ok = true
 			tok = token.New(token.ASTERISK, l.ch)
 		case '/':
-			ok = true
-			// TODO: handle comments
-			tok = token.New(token.SLASH, l.ch)
+			if  l.peekChar() == '/' {
+				l.skipLine()
+			} else if l.peekChar() == '*' {
+				l.skipComment()
+			} else {
+				tok = token.New(token.SLASH, l.ch)
+				ok = true
+			}
 		case '&':
 			ok = true
 			tok = token.New(token.AND, l.ch)
@@ -121,6 +133,21 @@ func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) skipLine() {
+	for l.ch != '\n' {
+		l.readChar()
+	}
+}
+
+func (l *Lexer) skipComment() {
+	prev := l.ch
+	for !(prev == '*' && l.ch == '/') || l.ch == 0 {
+		prev = l.ch
+		l.readChar()
+	}
+	l.readChar()
 }
 
 func (l *Lexer) readIdentifier() string {

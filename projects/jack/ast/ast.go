@@ -187,7 +187,7 @@ func (td *TypeDeclaration) String() string {
 		}
 		sb.WriteString(name.String())
 	}
-	sb.WriteString(";")
+	sb.WriteString(";\n")
 	return sb.String()
 }
 
@@ -239,12 +239,12 @@ func (sd *SubroutineDeclaration) String() string {
 		sb.WriteString(param.String())
 	}
 
-	sb.WriteString(") {")
+	sb.WriteString(") {\n")
 	for _, stmt := range sd.Body {
 		sb.WriteString("\t")
 		sb.WriteString(stmt.String())
 	}
-	sb.WriteString("}")
+	sb.WriteString("}\n")
 
 	return sb.String()
 }
@@ -273,7 +273,7 @@ func (cd *ClassDeclaration) String() string {
 		sb.WriteString("\n")
 	}
 
-	sb.WriteString("}")
+	sb.WriteString("}\n")
 
 	return sb.String()
 }	
@@ -298,7 +298,7 @@ func (ls *LetStatement) String() string {
 	sb.WriteString(ls.Name.String())
 	sb.WriteString(" = ")
 	sb.WriteString(ls.Value.String())
-	sb.WriteString(";")
+	sb.WriteString(";\n")
 	return sb.String()
 }
 
@@ -317,9 +317,9 @@ func (rs *ReturnStatement) TokenLiteral() string {
 
 func (rs *ReturnStatement) String() string {
 	if rs.Value == nil {
-		return fmt.Sprintf("%s;", rs.TokenLiteral())
+		return fmt.Sprintf("%s;\n", rs.TokenLiteral())
 	}
-	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), rs.Value.String())
+	return fmt.Sprintf("%s %s;\n", rs.TokenLiteral(), rs.Value.String())
 }
 
 // DoStatement => do <expression>;
@@ -332,7 +332,7 @@ func (ds *DoStatement) Statement(){}
 func (ds *DoStatement) TokenLiteral() string { return ds.Token.Literal }
 
 func (ds *DoStatement) String() string {
-	return fmt.Sprintf("%s %s;", ds.TokenLiteral(), ds.Expression.String())
+	return fmt.Sprintf("%s %s;\n", ds.TokenLiteral(), ds.Expression.String())
 }
 
 
@@ -355,9 +355,8 @@ func (ws *WhileStatement) String() string {
 	for _, stmt := range ws.Statements {
 		sb.WriteString("\t")
 		sb.WriteString(stmt.String())
-		sb.WriteString("\n")
 	}
-	sb.WriteString("}")
+	sb.WriteString("}\n")
 
 	return sb.String()
 }
@@ -384,18 +383,16 @@ func (is *IfStatement) String() string {
 	for _, s := range is.Statements {
 		sb.WriteString("\t")
 		sb.WriteString(s.String())
-		sb.WriteString("\n")
 	}
-	sb.WriteString("}")
+	sb.WriteString("}\n")
 
 	if len(is.ElseStatements) > 0 {
 		sb.WriteString(" eles {\n")
 		for _, s := range is.ElseStatements {
 			sb.WriteString("\t")
 			sb.WriteString(s.String())
-			sb.WriteString("\n")
 		}
-		sb.WriteString("}")
+		sb.WriteString("}\n")
 	}
 
 	return sb.String()

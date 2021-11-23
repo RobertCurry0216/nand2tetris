@@ -23,6 +23,14 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
+func (p *Parser) ParseFile() (string, error) {
+	class, err := p.parseClassDeclaration()
+	if err == nil {
+		return class.String(), nil
+	}
+	return "", err
+}
+
 func (p *Parser) eatToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.lexer.NextToken()
@@ -90,7 +98,7 @@ func (p *Parser) parseExpression() (ast.ExpressionNode, error) {
 				if exp.Term, err = p.parseSubroutineCall(); err != nil {
 					return nil, err
 				}
-			case token.LBRACE:
+			case token.LBRACKET:
 				if exp.Term, err = p.parseIndexIdentifier(); err != nil {
 					return nil, err
 				}
@@ -368,7 +376,7 @@ func (p *Parser) parseParameterList() ([]*ast.ParamDeclaration, error) {
 
 		params = append(params, param)
 
-		if p.expectAndEat(token.RPAREN) {
+		if p.expect(token.RPAREN) {
 			break
 		}
 
@@ -376,6 +384,8 @@ func (p *Parser) parseParameterList() ([]*ast.ParamDeclaration, error) {
 			return nil, tokenError(token.COMMA, p.curToken.Literal)
 		}
 	}
+
+	p.eatToken()
 
 	return params, nil
 }

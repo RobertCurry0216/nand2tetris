@@ -54,6 +54,7 @@ func TestParseLetStatement(t *testing.T) {
 		expName string
 		expValue interface{}
 	}{
+		{"let sum = sum + a[i];", "sum", "(sum (+a[(i)]))"},
 		{"let foo = bar();", "foo", "(bar())"},
 		{"let x = 8;", "x", "(8)"},
 		{"let y = ~true;", "y", "(~true)"},
@@ -253,7 +254,7 @@ func TestParseParamList(t *testing.T) {
 
 func TestParseSubroutineDeclaration(t *testing.T) {
 	test := `
-		method void sumValues(int a, int b) {
+		method void sumValues() {
 			let c = 1;
 			do add;
 			return c;
@@ -274,7 +275,7 @@ func TestParseSubroutineDeclaration(t *testing.T) {
 	assert(t, n, token.Type(token.METHOD), actual.Decelration.Type)
 	assert(t, n, token.Type(token.VOID), actual.ReturnType.Type)
 	assert(t, n, "sumValues", actual.Name.String())
-	assert(t, n, 2, len(actual.Parameters))
+	assert(t, n, 0, len(actual.Parameters))
 	assert(t, n, 3, len(actual.Body))
 }
 
@@ -284,7 +285,7 @@ func TestParseClassDeclaration(t *testing.T) {
 		class Vector {
 			field int x, y;
 
-			constructor Vector new(int _x, int _y) {
+			constructor Vector new() {
 				let x = _x;
 				let y = _y;
 				return this;
@@ -314,6 +315,7 @@ func TestParseExpression(t *testing.T) {
 			input string
 			exp string
 		}{
+			{"a[i]", "(a[(i)])"},
 			{"1 * 2 + 3", "(1 (*2 (+3)))"},
 			{"(4 * 8) - (2 / 3)", "((4 (*8)) (-(2 (/3))))"},
 			{"-1", "(-1)"},
@@ -337,4 +339,46 @@ func TestParseExpression(t *testing.T) {
 
 		assert(t, "paresExpression", test.exp, actual.String())
 	}
+}
+
+
+func TestLarge(t *testing.T) {
+	test := `
+		class Main {
+			function void main() {
+					var Array a;
+					var int length;
+					var int i, sum;
+		
+		let length = Keyboard.readInt("HOW MANY NUMBERS? ");
+		let a = Array.new(length);
+		let i = 0;
+		
+		while (i < length) {
+				let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");
+				let i = i + 1;
+		}
+		
+		let i = 0;
+		let sum = 0;
+		
+		while (i < length) {
+				let sum = sum + a[i];
+				let i = i + 1;
+		}
+		
+		do Output.printString("THE AVERAGE IS: ");
+		do Output.printInt(sum / length);
+		do Output.println();
+		
+		return;
+			}
+	}`
+
+	lexer := lexer.New(test)
+	parser := New(lexer)
+
+	_, err := parser.ParseFile()
+
+	assert(t, "large", nil, err)
 }
